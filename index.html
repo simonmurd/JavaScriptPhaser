@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal Praktikum Game 2D Phaser 3</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0f7ff',
+              100: '#e0effe',
+              500: '#0284c7',
+              600: '#0369a1',
+              900: '#0c4a6e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #fafafa;
+    }
+    /* Custom subtle scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #fafafa;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #e4e4e7;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #d4d4d8;
+    }
+  </style>
+</head>
+<body class="text-zinc-800 antialiased min-h-screen flex flex-col selection:bg-zinc-200 selection:text-zinc-900">
+
+  <!-- Header & Navigation Bar -->
+  <header class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-zinc-200/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Logo & Brand -->
+      <div class="flex items-center space-x-3">
+        <div class="w-9 h-9 rounded-xl bg-zinc-900 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+          P3
+        </div>
+        <div>
+          <span class="font-bold text-zinc-900 tracking-tight text-base block leading-none">Phaser 3 Lab</span>
+          <span class="text-[11px] text-zinc-400 font-medium">Portal Praktikum Game 2D</span>
+        </div>
+      </div>
+
+      <!-- Right Action Items -->
+      <div class="flex items-center space-x-4">
+        <div class="hidden sm:flex items-center space-x-2 bg-zinc-100/80 px-3 py-1.5 rounded-full border border-zinc-200/60 text-xs font-medium text-zinc-600">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>Semester Genap 2026/2027</span>
+        </div>
+
+        <a href="#modul-grid" class="inline-flex items-center justify-center text-xs font-semibold bg-zinc-900 text-white hover:bg-zinc-800 px-4 py-2 rounded-lg transition-all duration-200 shadow-sm">
+          Mulai Belajar
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
+
+    <!-- Hero Section -->
+    <section class="mb-12">
+      <div class="max-w-3xl">
+        <div class="inline-flex items-center space-x-2 bg-zinc-100 text-zinc-700 text-xs font-semibold px-3 py-1 rounded-full mb-4 border border-zinc-200/60">
+          <svg class="w-3.5 h-3.5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+          <span>Kurikulum Lengkap 12 Modul</span>
+        </div>
+
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-zinc-900 tracking-tight leading-tight mb-4">
+          Modul Praktikum Game 2D <span class="text-transparent bg-clip-text bg-gradient-to-r from-zinc-900 via-zinc-700 to-zinc-500">Phaser 3</span>
+        </h1>
+        
+        <p class="text-zinc-600 text-base sm:text-lg leading-relaxed mb-8 font-normal max-w-2xl">
+          Panduan terstruktur langkah demi langkah untuk membangun game tembak-menembak ruang angkasa (Raiden/Shmup) dari tingkat dasar hingga tingkat mahir.
+        </p>
+      </div>
+
+      <!-- Course Progress Banner -->
+      <div class="bg-white border border-zinc-200/80 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div class="flex items-center space-x-4">
+          <div class="w-12 h-12 rounded-xl bg-zinc-100 flex items-center justify-center text-zinc-800 font-bold border border-zinc-200/60 shrink-0">
+            <svg class="w-6 h-6 text-zinc-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          </div>
+          <div>
+            <h2 class="text-sm font-semibold text-zinc-900">Progres Pembelajaran Anda</h2>
+            <p class="text-xs text-zinc-500 mt-0.5"><span id="completed-count">0</span> dari 12 modul telah diselesaikan</p>
+          </div>
+        </div>
+
+        <div class="flex-1 max-w-md">
+          <div class="flex justify-between text-xs font-semibold text-zinc-600 mb-1.5">
+            <span>Progres Kurikulum</span>
+            <span id="progress-percent">0%</span>
+          </div>
+          <div class="w-full h-2.5 bg-zinc-100 rounded-full overflow-hidden border border-zinc-200/50">
+            <div id="progress-bar" class="h-full bg-zinc-900 transition-all duration-500 rounded-full" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <button onclick="resetProgress()" class="text-xs text-zinc-400 hover:text-zinc-700 transition-colors font-medium underline underline-offset-4 self-end md:self-center">
+          Reset Progres
+        </button>
+      </div>
+    </section>
+
+    <!-- Filter & Search Controls -->
+    <section class="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      
+      <!-- Category Filter Tabs -->
+      <div class="flex items-center space-x-1 overflow-x-auto pb-2 sm:pb-0 scrollbar-none" id="category-filters">
+        <button onclick="filterCategory('all')" data-cat="all" class="cat-btn active px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-zinc-900 text-white transition-all whitespace-nowrap shadow-sm">
+          Semua Modul
+        </button>
+        <button onclick="filterCategory('dasar')" data-cat="dasar" class="cat-btn px-3.5 py-1.5 rounded-lg text-xs font-medium text-zinc-600 hover:bg-zinc-100 transition-all whitespace-nowrap">
+          Dasar
+        </button>
+        <button onclick="filterCategory('mekanik')" data-cat="mekanik" class="cat-btn px-3.5 py-1.5 rounded-lg text-xs font-medium text-zinc-600 hover:bg-zinc-100 transition-all whitespace-nowrap">
+          Mekanik Tembakan
+        </button>
+        <button onclick="filterCategory('ai')" data-cat="ai" class="cat-btn px-3.5 py-1.5 rounded-lg text-xs font-medium text-zinc-600 hover:bg-zinc-100 transition-all whitespace-nowrap">
+          Musuh & AI
+        </button>
+        <button onclick="filterCategory('visual')" data-cat="visual" class="cat-btn px-3.5 py-1.5 rounded-lg text-xs font-medium text-zinc-600 hover:bg-zinc-100 transition-all whitespace-nowrap">
+          Visual & Audio
+        </button>
+        <button onclick="filterCategory('lanjutan')" data-cat="lanjutan" class="cat-btn px-3.5 py-1.5 rounded-lg text-xs font-medium text-zinc-600 hover:bg-zinc-100 transition-all whitespace-nowrap">
+          Lanjutan & Boss
+        </button>
+      </div>
+
+      <!-- Search Input -->
+      <div class="relative min-w-[240px]">
+        <svg class="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+        <input 
+          type="text" 
+          id="search-input" 
+          oninput="handleSearch()"
+          placeholder="Cari materi modul..." 
+          class="w-full bg-white border border-zinc-200/80 rounded-xl pl-9 pr-4 py-2 text-xs text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent transition-all shadow-sm"
+        >
+      </div>
+    </section>
+
+    <!-- Grid Modules Section -->
+    <section id="modul-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
+      <!-- MODUL 01 -->
+      <div class="module-card bg-white rounded-2xl border border-zinc-200/80 p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group relative overflow-hidden" data-category="dasar" data-title="setup canvas game inisialisasi">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-[10px] font-bold font-mono tracking-wider text-zinc-500 bg-zinc-100 px-2.5 py-1 rounded-md border border-zinc-200/60 uppercase">MODUL 01</span>
+            <label class="cursor-pointer flex items-center space-x-1.5 text-xs text-zinc-400 hover:text-zinc-700">
+              <input type="checkbox" onchange="toggleComplete(1)" id="check-1" class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900 w-4 h-4 cursor-pointer">
+              <span class="text-[11px] font-medium">Selesai</span>
+            </label>
+          </div>
+          <h2 class="text-base font-bold text-zinc-900 group-hover:text-zinc-700 transition-colors mb-2">
+            Setup & Canvas Game
+          </h2>
+          <p class="text-zinc-500 text-xs leading-relaxed mb-6">
+            Inisialisasi objek konfigurasi Phaser 3, setup Scene lifecycle (`preload`, `create`, `update`), dan menyesuaikan responsive canvas.
+          </p>
+        </div>
+        <div class="pt-4 border-t border-zinc-100 flex items-center justify-between">
+          <button onclick="openModal(1)" class="text-xs font-semibold text-zinc-600 hover:text-zinc-900 flex items-center space-x-1 transition-colors">
+            <span>Detail Materi</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          </button>
+          <a href="modul/modul-01-setup.html" class="inline-flex items-center justify-center space-x-1 text-xs font-semibold bg-zinc-900 hover:bg-zinc-800 text-white px-3.5 py-2 rounded-lg transition-all duration-200 group-hover:shadow">
+            <span>Buka</span>
+            <svg class="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- MODUL 02 -->
+      <div class="module-card bg-white rounded-2xl border border-zinc-200/80 p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group relative overflow-hidden" data-category="dasar" data-title="memuat asset sprite gambar atlas">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-[10px] font-bold font-mono tracking-wider text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md border border-blue-100 uppercase">MODUL 02</span>
+            <label class="cursor-pointer flex items-center space-x-1.5 text-xs text-zinc-400 hover:text-zinc-700">
+              <input type="checkbox" onchange="toggleComplete(2)" id="check-2" class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900 w-4 h-4 cursor-pointer">
+              <span class="text-[11px] font-medium">Selesai</span>
+            </label>
+          </div>
+          <h2 class="text-base font-bold text-zinc-900 group-hover:text-zinc-700 transition-colors mb-2">
+            Memuat Asset & Sprite
+          </h2>
+          <p class="text-zinc-500 text-xs leading-relaxed mb-6">
+            Teknik preloading gambar, spritesheet pesawat, pengelolaan texture atlas, serta penyajian sprite pemain pada posisi awal.
+          </p>
+        </div>
+        <div class="pt-4 border-t border-zinc-100 flex items-center justify-between">
+          <button onclick="openModal(2)" class="text-xs font-semibold text-zinc-600 hover:text-zinc-900 flex items-center space-x-1 transition-colors">
+            <span>Detail Materi</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          </button>
+          <a href="modul/modul-02-asset.html" class="inline-flex items-center justify-center space-x-1 text-xs font-semibold bg-zinc-900 hover:bg-zinc-800 text-white px-3.5 py-2 rounded-lg transition-all duration-200 group-hover:shadow">
+            <span>Buka</span>
+            <svg class="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- MODUL 03 -->
+      <div class="module-card bg-white rounded-2xl border border-zinc-200/80 p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group relative overflow-hidden" data-category="dasar" data-title="kontrol pesawat keyboard mouse input">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-[10px] font-bold font-mono tracking-wider text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100 uppercase">MODUL 03</span>
+            <label class="cursor-pointer flex items-center space-x-1.5 text-xs text-zinc-400 hover:text-zinc-700">
+              <input type="checkbox" onchange="toggleComplete(3)" id="check-3" class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900 w-4 h-4 cursor-pointer">
+              <span class="text-[11px] font-medium">Selesai</span>
+            </label>
+          </div>
+          <h2 class="text-base font-bold text-zinc-900 group-hover:text-zinc-700 transition-colors mb-2">
+            Kontrol Pesawat Interaktif
+          </h2>
+          <p class="text-zinc-500 text-xs leading-relaxed mb-6">
+            Menghubungkan tombol keyboard (WASD/Panah) dan pergerakan pointer mouse dengan pembatasan area layar (world bounds).
+          </p>
+        </div>
+        <div class="pt-4 border-t border-zinc-100 flex items-center justify-between">
+          <button onclick="openModal(3)" class="text-xs font-semibold text-zinc-600 hover:text-zinc-900 flex items-center space-x-1 transition-colors">
+            <span>Detail Materi</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          </button>
+          <a href="modul/modul-03-kontrol.html" class="inline-flex items-center justify-center space-x-1 text-xs font-semibold bg-zinc-900 hover:bg-zinc-800 text-white px-3.5 py-2 rounded-lg transition-all duration-200 group-hover:shadow">
+            <span>Buka</span>
+            <svg class="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- MODUL 04 -->
+      <div class="module-card bg-white rounded-2xl border border-zinc-200/80 p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group relative overflow-hidden" data-category="mekanik" data-title="sistem tembakan proyektil physics group recycling">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-[10px] font-bold font-mono tracking-wider text-amber-600 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-100 uppercase">MODUL 04</span>
+            <label class="cursor-pointer flex items-center space-x-1.5 text-xs text-zinc-400 hover:text-zinc-700">
+              <input type="checkbox" onchange="toggleComplete(4)" id="check-4" class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900 w-4 h-4 cursor-pointer">
+              <span class="text-[11px] font-medium">Selesai</span>
+            </label>
+          </div>
+          <h2 class="text-base font-bold text-zinc-900 group-hover:text-zinc-700 transition-colors mb-2">
+            Sistem Tembakan & Proyektil
+          </h2>
+          <p class="text-zinc-500 text-xs leading-relaxed mb-6">
+            Membangun Arcade Physics Group untuk proyektil, pengaturan cooldown otomatis, serta teknik object recycling agar hemat memori.
+          </p>
+        </div>
+        <div class="pt-4 border-t border-zinc-100 flex items-center justify-between">
+          <button onclick="openModal(4)" class="text-xs font-semibold text-zinc-600 hover:text-zinc-900 flex items-center space-x-1 transition-colors">
+            <span>Detail Materi</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          </button>
+          <a href="modul/modul-04-tembakan.html" class="inline-flex items-center justify-center space-x-1 text-xs font-semibold bg-zinc-900 hover:bg-zinc-800 text-white px-3.5 py-2 rounded-lg transition-all duration-200 group-hover:shadow">
+            <span>Buka</span>
+            <svg class="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- MODUL 05 -->
+      <div class="module-card bg-white rounded-2xl border border-zinc-200/80 p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group relative overflow-hidden" data-category="mekanik" data-title="variasi senjata spread shot laser power up">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-[10px] font-bold font-mono tracking-wider text-rose-600 bg-rose-50 px-2.5 py-1 rounded-md border border-rose-100 uppercase">MODUL 05</span>
+            <label class="cursor-pointer flex items-center space-x-1.5 text-xs text-zinc-400 hover:text-zinc-700">
+              <input type="checkbox" onchange="toggleComplete(5)" id="check-5" class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900 w-4 h-4 cursor-pointer">
+              <span class="text-[11px] font-medium">Selesai</span>
+            </label>
+          </div>
+          <h2 class="text-base font-bold text-zinc-900 group-hover:text-zinc-700 transition-colors mb-2">
+            Variasi Senjata & Power-Up
+          </h2>
+          <p class="text-zinc-500 text-xs leading-relaxed mb-6">
+            Menerapkan kalkulasi trigonometri untuk Spread Shot (3 arah), continuous Laser Beam, dan item pengumpul peningkatan senjata.
+          </p>
+        </div>
+        <div class="pt-4 border-t border-zinc-100 flex items-center justify-between">
+          <button onclick="openModal(5)" class="text-xs font-semibold text-zinc-600 hover:text-zinc-900 flex items-center space-x-1 transition-colors">
+            <span>Detail Materi</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          </button>
+          <a href="modul/modul-05-senjata.html" class="inline-flex items-center justify-center space-x-1 text-xs font-semibold bg-zinc-900 hover:bg-zinc-800 text-white px-3.5 py-2 rounded-lg transition-all duration-200 group-hover:shadow">
+            <span>Buka</span>
+            <svg class="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- MODUL 06 -->
+      <div class="module-card bg-white rounded-2xl border border-zinc-200/80 p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group relative overflow-hidden" data-category="ai" data-title="spawning musuh wave gelombang time event">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-[10px] font-bold font-mono tracking-wider text-purple-600 bg-purple-50 px-2.5 py-1 rounded-md border border-purple-100 uppercase">MODUL 06</span>
+            <label class="cursor-pointer flex items-center space-x-1.5 text-xs text-zinc-400 hover:text-zinc-700">
+              <input type="checkbox" onchange="toggleComplete(6)" id="check-6" class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900 w-4 h-4 cursor-pointer">
+              <span class="text-[11px] font-medium">Selesai</span>
+            </label>
+          </div>
+          <h2 class="text-base font-bold text-zinc-900 group-hover:text-zinc-700 transition-colors mb-2">
+            Spawning Musuh & Wave System
+          </h2>
+          <p class="text-zinc-500 text-xs leading-relaxed mb-6">
+            Sistem pemunculan musuh berkala memakai Phaser Time Event, variasi tipe musuh, serta manajemen gelombang serangan (waves).
+          </p>
+        </div>
+        <div class="pt-4 border-t border-zinc-100 flex items-center justify-between">
+          <button onclick="openModal(6)" class="text-xs font-semibold text-zinc-600 hover:text-zinc-900 flex items-center space-x-1 transition-colors">
+            <span>Detail Materi</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          </button>
+          <a href="modul/modul-06-spawning.html" class="inline-flex items-center justify-center space-x-1 text-xs font-semibold bg-zinc-900 hover:bg-zinc-800 text-white px-3.5 py-2 rounded-lg transition-all duration-200 group-hover:shadow">
+            <span>Buka</span>
+            <svg class="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- MODUL 07 -->
+      <div class="module-card bg-white rounded-2xl border border-zinc-200/80 p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group relative overflow-hidden" data-category="ai" data-title="perilaku ai musuh sine wave homing tracking">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-[10px] font-bold font-mono tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md border border-indigo-100 uppercase">MODUL 07</span>
+            <label class="cursor-pointer flex items-center space-x-1.5 text-xs text-zinc-400 hover:text-zinc-700">
+              <input type="checkbox" onchange="toggleComplete(7)" id="check-7" class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900 w-4 h-4 cursor-pointer">
+              <span class="text-[11px] font-medium">Selesai</span>
+            </label>
+          </div>
+          <h2 class="text-base font-bold text-zinc-900 group-hover:text-zinc-700 transition-colors mb-2">
+            Perilaku AI & Pattern Musuh
+          </h2>
+          <p class="text-zinc-500 text-xs leading-relaxed mb-6">
+            Pola pergerakan matematika (gelombang Sine/Cosine), pelacak posisi pemain (homing missiles), dan balasan tembakan musuh.
+          </p>
+        </div>
+        <div class="pt-4 border-t border-zinc-100 flex items-center justify-between">
+          <button onclick="openModal(7)" class="text-xs font-semibold text-zinc-600 hover:text-zinc-900 flex items-center space-x-1 transition-colors">
+            <span>Detail Materi</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          </button>
+          <a href="modul/modul-07-ai-musuh.html" class="inline-flex items-center justify-center space-x-1 text-xs font-semibold bg-zinc-900 hover:bg-zinc-800 text-white px-3.5 py-2 rounded-lg transition-all duration-200 group-hover:shadow">
+            <span>Buka</span>
+            <svg class="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- MODUL 08 -->
+      <div class="module-card bg-white rounded-2xl border border-zinc-200/80 p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group relative overflow-hidden" data-category="mekanik" data-title="deteksi tabrakan collision overlap physical body">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-[10px] font-bold font-mono tracking-wider text-cyan-600 bg-cyan-50 px-2.5 py-1 rounded-md border border-cyan-100 uppercase">MODUL 08</span>
+            <label class="cursor-pointer flex items-center space-x-1.5 text-xs text-zinc-400 hover:text-zinc-700">
+              <input type="checkbox" onchange="toggleComplete(8)" id="check-8" class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900 w-4 h-4 cursor-pointer">
+              <span class="text-[11px] font-medium">Selesai</span>
+            </label>
+          </div>
+          <h2 class="text-base font-bold text-zinc-900 group-hover:text-zinc-700 transition-colors mb-2">
+            Deteksi Tabrakan & Fisika
+          </h2>
+          <p class="text-zinc-500 text-xs leading-relaxed mb-6">
+            Menerapkan Arcade Overlap vs Collider, penyesuaian hitbox (body radius), dan kalkulasi damage HP saat benturan terjadi.
+          </p>
+        </div>
+        <div class="pt-4 border-t border-zinc-100 flex items-center justify-between">
+          <button onclick="openModal(8)" class="text-xs font-semibold text-zinc-600 hover:text-zinc-900 flex items-center space-x-1 transition-colors">
+            <span>Detail Materi</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          </button>
+          <a href="modul/modul-08-tabrakan.html" class="inline-flex items-center justify-center space-x-1 text-xs font-semibold bg-zinc-900 hover:bg-zinc-800 text-white px-3.5 py-2 rounded-lg transition-all duration-200 group-hover:shadow">
+            <span>Buka</span>
+            <svg class="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- MODUL 09 -->
+      <div class="module-card bg-white rounded-2xl border border-zinc-200/80 p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group relative overflow-hidden" data-category="visual" data-title="sistem partikel efek visual ledakan screen shake particle emitter">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-[10px] font-bold font-mono tracking-wider text-teal-600 bg-teal-50 px-2.5 py-1 rounded-md border border-teal-100 uppercase">MODUL 09</span>
+            <label class="cursor-pointer flex items-center space-x-1.5 text-xs text-zinc-400 hover:text-zinc-700">
+              <input type="checkbox" onchange="toggleComplete(9)" id="check-9" class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900 w-4 h-4 cursor-pointer">
+              <span class="text-[11px] font-medium">Selesai</span>
+            </label>
+          </div>
+          <h2 class="text-base font-bold text-zinc-900 group-hover:text-zinc-700 transition-colors mb-2">
+            Partikel & Efek Visual
+          </h2>
+          <p class="text-zinc-500 text-xs leading-relaxed mb-6">
+            Membuat Particle Emitter untuk efek semburan api jet, ledakan musuh, trail peluru, serta efek guncangan kamera (Screen Shake).
+          </p>
+        </div>
+        <div class="pt-4 border-t border-zinc-100 flex items-center justify-between">
+          <button onclick="openModal(9)" class="text-xs font-semibold text-zinc-600 hover:text-zinc-900 flex items-center space-x-1 transition-colors">
+            <span>Detail Materi</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          </button>
+          <a href="modul/modul-09-partikel.html" class="inline-flex items-center justify-center space-x-1 text-xs font-semibold bg-zinc-900 hover:bg-zinc-800 text-white px-3.5 py-2 rounded-lg transition-all duration-200 group-hover:shadow">
+            <span>Buka</span>
+            <svg class="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- MODUL 10 -->
+      <div class="module-card bg-white rounded-2xl border border-zinc-200/80 p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group relative overflow-hidden" data-category="visual" data-title="score health ui overlay bitmap text hud">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-[10px] font-bold font-mono tracking-wider text-orange-600 bg-orange-50 px-2.5 py-1 rounded-md border border-orange-100 uppercase">MODUL 10</span>
+            <label class="cursor-pointer flex items-center space-x-1.5 text-xs text-zinc-400 hover:text-zinc-700">
+              <input type="checkbox" onchange="toggleComplete(10)" id="check-10" class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900 w-4 h-4 cursor-pointer">
+              <span class="text-[11px] font-medium">Selesai</span>
+            </label>
+          </div>
+          <h2 class="text-base font-bold text-zinc-900 group-hover:text-zinc-700 transition-colors mb-2">
+            Score, Health & UI Overlay
+          </h2>
+          <p class="text-zinc-500 text-xs leading-relaxed mb-6">
+            Merancang Heads-Up Display (HUD), hitungan skor dinamis, indikator nyawa pesawat, dan panel Game Over interaktif.
+          </p>
+        </div>
+        <div class="pt-4 border-t border-zinc-100 flex items-center justify-between">
+          <button onclick="openModal(10)" class="text-xs font-semibold text-zinc-600 hover:text-zinc-900 flex items-center space-x-1 transition-colors">
+            <span>Detail Materi</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          </button>
+          <a href="modul/modul-10-ui-score.html" class="inline-flex items-center justify-center space-x-1 text-xs font-semibold bg-zinc-900 hover:bg-zinc-800 text-white px-3.5 py-2 rounded-lg transition-all duration-200 group-hover:shadow">
+            <span>Buka</span>
+            <svg class="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- MODUL 11 -->
+      <div class="module-card bg-white rounded-2xl border border-zinc-200/80 p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group relative overflow-hidden" data-category="visual" data-title="audio sfx bgm background music audio sprite">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-[10px] font-bold font-mono tracking-wider text-pink-600 bg-pink-50 px-2.5 py-1 rounded-md border border-pink-100 uppercase">MODUL 11</span>
+            <label class="cursor-pointer flex items-center space-x-1.5 text-xs text-zinc-400 hover:text-zinc-700">
+              <input type="checkbox" onchange="toggleComplete(11)" id="check-11" class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900 w-4 h-4 cursor-pointer">
+              <span class="text-[11px] font-medium">Selesai</span>
+            </label>
+          </div>
+          <h2 class="text-base font-bold text-zinc-900 group-hover:text-zinc-700 transition-colors mb-2">
+            Audio, SFX & Background Music
+          </h2>
+          <p class="text-zinc-500 text-xs leading-relaxed mb-6">
+            Pengelolaan efek suara tembakan, ledakan, audio sprite, latar musik berulang (loop BGM), serta pengatur volume suara.
+          </p>
+        </div>
+        <div class="pt-4 border-t border-zinc-100 flex items-center justify-between">
+          <button onclick="openModal(11)" class="text-xs font-semibold text-zinc-600 hover:text-zinc-900 flex items-center space-x-1 transition-colors">
+            <span>Detail Materi</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          </button>
+          <a href="modul/modul-11-audio.html" class="inline-flex items-center justify-center space-x-1 text-xs font-semibold bg-zinc-900 hover:bg-zinc-800 text-white px-3.5 py-2 rounded-lg transition-all duration-200 group-hover:shadow">
+            <span>Buka</span>
+            <svg class="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- MODUL 12 -->
+      <div class="module-card bg-white rounded-2xl border border-zinc-200/80 p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between group relative overflow-hidden" data-category="lanjutan" data-title="boss stage game state loop level akhir high score">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-[10px] font-bold font-mono tracking-wider text-red-600 bg-red-50 px-2.5 py-1 rounded-md border border-red-100 uppercase">MODUL 12</span>
+            <label class="cursor-pointer flex items-center space-x-1.5 text-xs text-zinc-400 hover:text-zinc-700">
+              <input type="checkbox" onchange="toggleComplete(12)" id="check-12" class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900 w-4 h-4 cursor-pointer">
+              <span class="text-[11px] font-medium">Selesai</span>
+            </label>
+          </div>
+          <h2 class="text-base font-bold text-zinc-900 group-hover:text-zinc-700 transition-colors mb-2">
+            Boss Stage & Game Loop
+          </h2>
+          <p class="text-zinc-500 text-xs leading-relaxed mb-6">
+            Membangun pertarungan Boss multi-fase, pengaturan siklus game state lengkap (Menu, Play, Victory), dan penyimpanan High Score.
+          </p>
+        </div>
+        <div class="pt-4 border-t border-zinc-100 flex items-center justify-between">
+          <button onclick="openModal(12)" class="text-xs font-semibold text-zinc-600 hover:text-zinc-900 flex items-center space-x-1 transition-colors">
+            <span>Detail Materi</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          </button>
+          <a href="modul/modul-12-boss-stage.html" class="inline-flex items-center justify-center space-x-1 text-xs font-semibold bg-zinc-900 hover:bg-zinc-800 text-white px-3.5 py-2 rounded-lg transition-all duration-200 group-hover:shadow">
+            <span>Buka</span>
+            <svg class="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+          </a>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Empty State Message -->
+    <div id="no-results" class="hidden py-16 text-center">
+      <div class="w-12 h-12 rounded-full bg-zinc-100 text-zinc-400 flex items-center justify-center mx-auto mb-3">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 9.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+      </div>
+      <p class="text-sm font-semibold text-zinc-800">Modul tidak ditemukan</p>
+      <p class="text-xs text-zinc-500 mt-1">Coba kata kunci pencarian lain atau ganti kategori filter.</p>
+    </div>
+
+  </main>
+
+  <!-- Detail Modal Component -->
+  <div id="module-modal" class="fixed inset-0 z-50 bg-zinc-900/40 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-zinc-200 transform scale-95 transition-transform duration-300 relative" id="modal-content">
+      
+      <button onclick="closeModal()" class="absolute top-5 right-5 text-zinc-400 hover:text-zinc-700 p-1 rounded-lg hover:bg-zinc-100 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <span id="modal-badge" class="text-[10px] font-bold font-mono tracking-wider bg-zinc-100 px-2.5 py-1 rounded-md border border-zinc-200 uppercase">
+        MODUL DETAIL
+      </span>
+
+      <h3 id="modal-title" class="text-xl font-bold text-zinc-900 mt-3 mb-2">
+        Judul Modul
+      </h3>
+
+      <p id="modal-description" class="text-xs text-zinc-500 leading-relaxed mb-6">
+        Deskripsi lengkap modul akan ditampilkan di sini.
+      </p>
+
+      <div class="bg-zinc-50 border border-zinc-200/60 rounded-xl p-4 mb-6">
+        <h4 class="text-xs font-bold text-zinc-800 uppercase tracking-wider mb-2">Pokok Bahasan Utama:</h4>
+        <ul id="modal-topics" class="text-xs text-zinc-600 space-y-1.5 list-disc list-inside">
+          <!-- Topics dynamically injected -->
+        </ul>
+      </div>
+
+      <div class="flex items-center justify-between pt-2">
+        <span id="modal-time" class="text-xs text-zinc-400 font-medium flex items-center space-x-1">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <span>Estimasi: 45 Menit</span>
+        </span>
+
+        <a id="modal-link" href="#" class="inline-flex items-center justify-center space-x-1.5 text-xs font-semibold bg-zinc-900 text-white hover:bg-zinc-800 px-4 py-2.5 rounded-lg transition-all shadow-sm">
+          <span>Buka Praktikum</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-zinc-200/80 mt-16 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center space-x-2">
+        <div class="w-6 h-6 rounded-md bg-zinc-900 text-white flex items-center justify-center text-xs font-bold">P</div>
+        <span class="text-xs font-semibold text-zinc-700">Laboratorium Pemrograman Game Phaser 3</span>
+      </div>
+      <p class="text-xs text-zinc-400">
+        &copy; 2026 Portal Praktikum. Desain Minimalis Elegan.
+      </p>
+    </div>
+  </footer>
+
+  <!-- Client-side Interactive Logic -->
+  <script>
+    // Module Detailed Data Storage for Modal View
+    const moduleDetails = {
+      1: {
+        badge: "MODUL 01",
+        title: "Setup & Canvas Game",
+        desc: "Langkah pertama membuat canvas game Phaser 3. Anda akan mempelajari arsitektur dasar engine Phaser, cara mengatur skala game responsif, serta daur hidup Scene (preload, create, update).",
+        topics: [
+          "Konfigurasi Phaser.Game (`width`, `height`, `type: Phaser.AUTO`)",
+          "Memahami struktur Scene dasar Phaser 3",
+          "Menyesuaikan Canvas agar centering dan fluid di layar"
+        ],
+        time: "30 Menit",
+        link: "modul/modul-01-setup.html"
+      },
+      2: {
+        badge: "MODUL 02",
+        title: "Memuat Asset & Sprite",
+        desc: "Mengimpor aset visual ke dalam game. Dipelajari teknik preloading gambar tunggal, spritesheet animasi, serta mengatur koordinat jangkar (origin) sprite pesawat pemain.",
+        topics: [
+          "Fungsi `this.load.image()` dan `this.load.spritesheet()`",
+          "Menampilkan Sprite dengan `this.add.sprite()`",
+          "Set origin, scale, dan rotasi awal pesawat"
+        ],
+        time: "35 Menit",
+        link: "modul/modul-02-asset.html"
+      },
+      3: {
+        badge: "MODUL 03",
+        title: "Kontrol Pesawat Interaktif",
+        desc: "Menghubungkan kontrol pemain. Menggunakan tombol panah keyboard/WASD atau gerakan kursor mouse secara halus untuk menggerakkan pesawat dalam batas area game.",
+        topics: [
+          "Pendaftaran tombol input `this.input.keyboard.createCursorKeys()`",
+          "Pergerakan berbasis Pointer Mouse `pointermove`",
+          "Pembatasan posisi dengan `Phaser.Math.Clamp`"
+        ],
+        time: "40 Menit",
+        link: "modul/modul-03-kontrol.html"
+      },
+      4: {
+        badge: "MODUL 04",
+        title: "Sistem Tembakan & Proyektil",
+        desc: "Membangun mekanik tembakan utama. Menggunakan Arcade Physics Group untuk mengelola puluhan proyektil, mengatur interval waktu (cooldown), dan menghapus peluru di luar layar.",
+        topics: [
+          "Membuat `this.physics.add.group()` untuk proyektil",
+          "Pengaturan cooldown tembakan menggunakan timestamp",
+          "Daur ulang peluru mati (`killAndHide` & `setActive(false)`)"
+        ],
+        time: "45 Menit",
+        link: "modul/modul-04-tembakan.html"
+      },
+      5: {
+        badge: "MODUL 05",
+        title: "Variasi Senjata & Power-Up",
+        desc: "Mengembangkan variasi senjata khas game Raiden seperti Spread Shot 3-Way, Laser kontinu, dan item power-up yang jatuh untuk mengupgrade level senjata.",
+        topics: [
+          "Kalkulasi sudut tembak dengan Math.sin & Math.cos",
+          "Mekanik laser lurus kontinu dengan Rectangle Physics",
+          "Drop item power-up dan peningkat level tembakan"
+        ],
+        time: "50 Menit",
+        link: "modul/modul-05-senjata.html"
+      },
+      6: {
+        badge: "MODUL 06",
+        title: "Spawning Musuh & Wave System",
+        desc: "Membuat musuh bermunculan dari atas layar secara otomatis menggunakan Time Event Phaser, dipadukan dengan logika gelombang (Wave 1, Wave 2, dst).",
+        topics: [
+          "Penggunaan `this.time.addEvent()` dengan `loop: true`",
+          "Penentuan koordinat x acak dengan `Phaser.Math.Between`",
+          "Manajemen tingkat kesulitan wave secara progresif"
+        ],
+        time: "45 Menit",
+        link: "modul/modul-06-spawning.html"
+      },
+      7: {
+        badge: "MODUL 07",
+        title: "Perilaku AI & Pattern Musuh",
+        desc: "Memberikan variasi pergerakan cerdas pada musuh, seperti pola zigzag sinus, musuh meluncur cepat (dive-bomber), hingga peluru musuh yang melacak posisi pemain.",
+        topics: [
+          "Pola lintasan Trigonometri (`Math.sin` pada posisi X)",
+          "Pola Homing Missile memakai `Phaser.Math.Angle.Between`",
+          "Kalkulasi vektor arah tembakan musuh ke pemain"
+        ],
+        time: "55 Menit",
+        link: "modul/modul-07-ai-musuh.html"
+      },
+      8: {
+        badge: "MODUL 08",
+        title: "Deteksi Tabrakan & Fisika",
+        desc: "Menghubungkan interaksi fisik antar objek. Memproses benturan peluru dengan musuh, benturan pesawat dengan musuh, serta pengurangan HP secara akurat.",
+        topics: [
+          "Memakai `this.physics.add.overlap()`",
+          "Fungsi callback saat tabrakan terjadi",
+          "Pengaturan ukuran circular hitbox (`setCircle`)"
+        ],
+        time: "40 Menit",
+        link: "modul/modul-08-tabrakan.html"
+      },
+      9: {
+        badge: "MODUL 09",
+        title: "Partikel & Efek Visual",
+        desc: "Mempercantik penampilan visual game dengan sistem partikel Phaser 3. Membuat efek ledakan, semburan kembang api, api pendorong jet, serta guncangan layar.",
+        topics: [
+          "Konfigurasi `this.add.particles()` & Emitter",
+          "Efek ledakan beruntun saat musuh hancur",
+          "Efek guncangan kamera `this.cameras.main.shake()`"
+        ],
+        time: "50 Menit",
+        link: "modul/modul-09-partikel.html"
+      },
+      10: {
+        badge: "MODUL 10",
+        title: "Score, Health & UI Overlay",
+        desc: "Menampilkan interface permainan yang informatif dan menarik. Menggunakan font teks kustom, bar nyawa visual, serta overlay panel skor akhir.",
+        topics: [
+          "Rendering Teks Skor dengan `this.add.text()`",
+          "Pembaruan bar HP dinamis berdasarkan sisa darah",
+          "Membuat UI overlay semi-transparan untuk Pause & Game Over"
+        ],
+        time: "40 Menit",
+        link: "modul/modul-10-ui-score.html"
+      },
+      11: {
+        badge: "MODUL 11",
+        title: "Audio, SFX & Background Music",
+        desc: "Menambahkan dimensi suara agar permainan lebih immersive. Mengatur efek suara tembakan, dentuman ledakan, latar musik, dan slider pengatur volume.",
+        topics: [
+          "Preloading & Playback audio (`this.sound.play()`)",
+          "Pengaturan musik latar berulang (`loop: true`)",
+          "Manajemen Audio Sprite untuk menghemat HTTP request"
+        ],
+        time: "35 Menit",
+        link: "modul/modul-11-audio.html"
+      },
+      12: {
+        badge: "MODUL 12",
+        title: "Boss Stage & Game Loop",
+        desc: "Modul puncaknya! Bertarung melawan Musuh Utama (Boss) dengan berbagai pola serangan bertahap (Phase 1, 2, 3) dan menyimpan rekor skor ke LocalStorage.",
+        topics: [
+          "State Machine untuk tahapan pertarungan Boss",
+          "Health Bar Boss khusus di bagian atas layar",
+          "Menyimpan rekor skor pemain via `localStorage`"
+        ],
+        time: "60 Menit",
+        link: "modul/modul-12-boss-stage.html"
+      }
+    };
+
+    // Global State & LocalStorage Management
+    let completedModules = JSON.parse(localStorage.getItem('phaser3_lab_progress') || '[]');
+
+    document.addEventListener('DOMContentLoaded', () => {
+      syncProgressUI();
+    });
+
+    function toggleComplete(id) {
+      if (completedModules.includes(id)) {
+        completedModules = completedModules.filter(mId => mId !== id);
+      } else {
+        completedModules.push(id);
+      }
+      localStorage.setItem('phaser3_lab_progress', JSON.stringify(completedModules));
+      syncProgressUI();
+    }
+
+    function syncProgressUI() {
+      // Update Checkboxes
+      for (let i = 1; i <= 12; i++) {
+        const chk = document.getElementById(`check-${i}`);
+        if (chk) {
+          chk.checked = completedModules.includes(i);
+        }
+      }
+
+      // Update Count and Bar
+      const count = completedModules.length;
+      const percentage = Math.round((count / 12) * 100);
+
+      const countEl = document.getElementById('completed-count');
+      const percentEl = document.getElementById('progress-percent');
+      const barEl = document.getElementById('progress-bar');
+
+      if (countEl) countEl.innerText = count;
+      if (percentEl) percentEl.innerText = `${percentage}%`;
+      if (barEl) barEl.style.width = `${percentage}%`;
+    }
+
+    function resetProgress() {
+      if (confirm('Apakah Anda yakin ingin mereset seluruh progres modul praktikum?')) {
+        completedModules = [];
+        localStorage.removeItem('phaser3_lab_progress');
+        syncProgressUI();
+      }
+    }
+
+    // Filter Logic
+    let currentCategory = 'all';
+
+    function filterCategory(cat) {
+      currentCategory = cat;
+
+      // Update Active Button Style
+      const buttons = document.querySelectorAll('.cat-btn');
+      buttons.forEach(btn => {
+        if (btn.getAttribute('data-cat') === cat) {
+          btn.classList.add('bg-zinc-900', 'text-white', 'shadow-sm');
+          btn.classList.remove('text-zinc-600', 'hover:bg-zinc-100');
+        } else {
+          btn.classList.remove('bg-zinc-900', 'text-white', 'shadow-sm');
+          btn.classList.add('text-zinc-600', 'hover:bg-zinc-100');
+        }
+      });
+
+      applyFilters();
+    }
+
+    function handleSearch() {
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const query = document.getElementById('search-input').value.toLowerCase().trim();
+      const cards = document.querySelectorAll('.module-card');
+      let visibleCount = 0;
+
+      cards.forEach(card => {
+        const cardCat = card.getAttribute('data-category');
+        const cardTitle = card.getAttribute('data-title').toLowerCase();
+        
+        const matchesCat = (currentCategory === 'all' || cardCat === currentCategory);
+        const matchesQuery = (cardTitle.includes(query));
+
+        if (matchesCat && matchesQuery) {
+          card.classList.remove('hidden');
+          visibleCount++;
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+
+      const noResults = document.getElementById('no-results');
+      if (visibleCount === 0) {
+        noResults.classList.remove('hidden');
+      } else {
+        noResults.classList.add('hidden');
+      }
+    }
+
+    // Modal Display Logic
+    function openModal(id) {
+      const data = moduleDetails[id];
+      if (!data) return;
+
+      document.getElementById('modal-badge').innerText = data.badge;
+      document.getElementById('modal-title').innerText = data.title;
+      document.getElementById('modal-description').innerText = data.desc;
+      document.getElementById('modal-time').querySelector('span').innerText = `Estimasi: ${data.time}`;
+      document.getElementById('modal-link').setAttribute('href', data.link);
+
+      const topicsContainer = document.getElementById('modal-topics');
+      topicsContainer.innerHTML = '';
+      data.topics.forEach(topic => {
+        const li = document.createElement('li');
+        li.innerText = topic;
+        topicsContainer.appendChild(li);
+      });
+
+      const modal = document.getElementById('module-modal');
+      const content = document.getElementById('modal-content');
+
+      modal.classList.remove('pointer-events-none', 'opacity-0');
+      modal.classList.add('opacity-100');
+      content.classList.remove('scale-95');
+      content.classList.add('scale-100');
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('module-modal');
+      const content = document.getElementById('modal-content');
+
+      modal.classList.remove('opacity-100');
+      modal.classList.add('opacity-0', 'pointer-events-none');
+      content.classList.remove('scale-100');
+      content.classList.add('scale-95');
+    }
+
+    // Close Modal on backdrop click
+    document.getElementById('module-modal').addEventListener('click', (e) => {
+      if (e.target.id === 'module-modal') {
+        closeModal();
+      }
+    });
+
+    // Close Modal on Esc key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeModal();
+      }
+    });
+  </script>
+</body>
+</html>
