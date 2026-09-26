@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Raiden Pro Enhanced - Accurate Raiden Tank Edition</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Monaco Editor (VS Code Engine) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/editor/editor.main.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/loader.min.js"></script>
+
+  <style>
+    body { background-color: #0b0f19; color: #f3f4f6; }
+  </style>
+</head>
+<body class="flex flex-col h-screen overflow-hidden font-sans">
+
+  <!-- Header Bar -->
+  <header class="h-14 bg-slate-900 border-b border-slate-800 px-6 flex items-center justify-between z-10">
+    <div class="flex items-center space-x-3">
+      <span class="flex h-3 w-3 relative">
+        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+        <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+      </span>
+      <h1 class="text-base font-bold text-slate-100 tracking-wide">
+        RAIDEN FIGHTER <span class="text-xs bg-red-600/30 text-red-400 border border-red-500/40 px-2 py-0.5 rounded font-mono ml-2">TANK EDITION</span>
+      </h1>
+    </div>
+
+    <div class="flex items-center space-x-3">
+      <button id="run-btn" class="bg-red-600 hover:bg-red-500 text-white font-semibold px-4 py-1.5 rounded-md transition-all flex items-center space-x-2 shadow-lg shadow-red-600/30 text-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+        </svg>
+        <span>Jalankan & Tembak!</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Workspace Area -->
+  <main class="flex flex-1 w-full overflow-hidden">
+    
+    <!-- Code Editor Area -->
+    <section class="w-1/2 border-r border-slate-800 flex flex-col">
+      <div class="bg-slate-900/90 px-4 py-2 text-xs font-mono text-slate-400 border-b border-slate-800 flex justify-between">
+        <span>game.js</span>
+        <span class="text-slate-500">Klik area game untuk mengaktifkan Audio & Mouse Control</span>
+      </div>
+      <div id="editor-container" class="w-full flex-1"></div>
+    </section>
+
+    <!-- Game Canvas Output Area -->
+    <section class="w-1/2 flex flex-col bg-slate-950 relative">
+      <div class="bg-slate-900/90 px-4 py-2 text-xs font-mono text-slate-400 border-b border-slate-800">
+        <span>Pratinjau Live Phaser WebGL</span>
+      </div>
+      
+      <div class="flex-1 flex items-center justify-center p-4">
+        <iframe id="preview-iframe" class="w-[450px] h-[600px] border border-slate-800 rounded-lg shadow-2xl bg-black"></iframe>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    let editor;
+
+    // KODE GAME RAIDEN PRO ENHANCED - ACCURATE RAIDEN TANK EDITION
+    const starterCode = `// GAME RAIDEN PRO ENHANCED - ACCURATE RAIDEN TANK EDITION
+const config = {
+  type: Phaser.AUTO,
+  width: 450,
+  height: 600,
+  backgroundColor: '#030308',
+  physics: {
+    default: 'arcade',
+    arcade: { debug: false }
+  },
+  scene: {
+    preload: preload,
+    create: create,
+    update: update
+  }
+};
+
+const game = new Phaser.Game(config);
+
+let player, enemies, tanks, bullets, enemyBullets, homingLasers, powerups;
+let terrainBg, emitterExplode, emitterThruster;
+let scoreText, hpText, weaponLevelText;
+
+let lastFired = 0;
+let score = 0;
+let playerHp = 100;
+let weaponLevel = 1;
+
+// Web Audio API Synthesizer untuk SFX Tanpa File
+const AudioFX = {
+  ctx: null,
+  init() { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
+  playLaser() {
+    if (!this.ctx) return;
+    let osc = this.ctx.createOscillator();
+    let gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 0.1);
+    gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.1);
+    osc.connect(gain); gain.connect(this.ctx.destination);
+    osc.start(); osc.stop(this.ctx.currentTime + 0.1);
+  },
+  playExplode() {
+    if (!this.ctx) return;
+    let osc = this.ctx.createOscillator();
+    let gain = this.ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(30, this.ctx.currentTime + 0.25);
+    gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.25);
+    osc.connect(gain); gain.connect(this.ctx.destination);
+    osc.start(); osc.stop(this.ctx.currentTime + 0.25);
+  }
+};
+
+function preload() {
+  let g = this.make.graphics({ x: 0, y: 0, add: false });
+
+  // ==========================================
+  // 1. GENERATE PROCEDURAL TERRAIN (RAIDEN STAGE 1)
+  // ==========================================
+  // Base Grass
+  g.fillStyle(0x325c28); g.fillRect(0, 0, 450, 600);
+  
+  // Rumput Gelap Variasi
+  g.fillStyle(0x22441a);
+  for (let i = 0; i < 40; i++) {
+    g.fillCircle(Phaser.Math.Between(0, 450), Phaser.Math.Between(0, 600), Phaser.Math.Between(20, 50));
+  }
+
+  // Ladang / Field Patches
+  g.fillStyle(0x4e4326); g.fillRect(280, 40, 110, 90); g.fillRect(140, 430, 110, 90);
+  g.fillStyle(0x3a521e); g.fillRect(285, 45, 100, 80); g.fillRect(145, 435, 100, 80);
+
+  // Danau / Water Body Sisi Kiri
+  g.fillStyle(0x27382b); // Pesisir / Pasir Gelap
+  g.fillTriangle(0, 120, 160, 260, 0, 400);
+  g.fillRect(0, 150, 140, 220);
+  g.fillStyle(0x2b4251); // Air Danau Slate Blue
+  g.fillTriangle(0, 130, 145, 260, 0, 390);
+  g.fillRect(0, 160, 130, 200);
+  g.fillStyle(0x3d5b6e); // Refleksi Air
+  g.fillRect(10, 180, 80, 140);
+
+  // Jalan Tanah Berliku (Winding Dirt Path)
+  g.fillStyle(0xa18451);
+  g.beginPath();
+  g.moveTo(180, 0);   g.lineTo(210, 150); g.lineTo(185, 300); g.lineTo(235, 450); g.lineTo(160, 600);
+  g.lineTo(180, 600); g.lineTo(255, 450); g.lineTo(205, 300); g.lineTo(230, 150); g.lineTo(200, 0);
+  g.closePath();
+  g.fillPath();
+
+  // Rumpun Pohon / Dense Tree Canopies
+  const drawTree = (tx, ty, r) => {
+    g.fillStyle(0x122e0d); g.fillCircle(tx + 2, ty + 2, r);
+    g.fillStyle(0x1d4715); g.fillCircle(tx, ty, r);
+    g.fillStyle(0x2b6320); g.fillCircle(tx - 2, ty - 2, r * 0.7);
+    g.fillStyle(0x3e8230); g.fillCircle(tx - 4, ty - 4, r * 0.4);
+  };
+
+  for (let y = 20; y < 580; y += 30) {
+    drawTree(380 + Math.sin(y * 0.05) * 30, y, 22);
+    drawTree(410 + Math.cos(y * 0.05) * 20, y + 10, 20);
+    drawTree(350 + Math.sin(y * 0.02) * 20, y + 15, 18);
+  }
+  drawTree(120, 80, 20);  drawTree(140, 95, 16);
+  drawTree(240, 220, 22); drawTree(260, 235, 18);
+
+  g.generateTexture('terrainBg', 450, 600);
+  g.clear();
+
+  // ==========================================
+  // 2. MUSUH TANK DARAT (ACCURATE RAIDEN TANK)
+  // ==========================================
+  // Bayangan Dasar Tank di Atas Rumput
+  g.fillStyle(0x192e14); g.fillRect(2, 4, 44, 42);
+
+  // Treads / Rantai Tank Hitam Baja (Sisi Kiri & Kanan)
+  g.fillStyle(0x0f172a); g.fillRect(2, 4, 10, 40); g.fillRect(36, 4, 10, 40);
+  g.fillStyle(0x64748b);
+  for (let i = 6; i < 42; i += 6) {
+    g.fillRect(2, i, 10, 2); g.fillRect(36, i, 10, 2);
+  }
+
+  // Badan Utama / Armor Chassis (Warna Tan / Khaki Militer Khas Raiden)
+  g.fillStyle(0x786c54); g.fillRect(10, 2, 28, 44);
+  g.fillStyle(0xa39577); g.fillRect(12, 4, 24, 40);
+  g.fillStyle(0xc4b595); g.fillRect(14, 6, 20, 36);
+
+  // Detail Panel Vent & Slot Armor
+  g.fillStyle(0x475569); g.fillRect(12, 38, 24, 4); // Vent Belakang
+  g.fillStyle(0x2d251e); g.fillRect(14, 8, 20, 3);  // Slot Depan
+
+  // Sensor / Dome Merah Khas Raiden di Sisi Kanan Kank
+  g.fillStyle(0x991b1b); g.fillCircle(31, 16, 6);
+  g.fillStyle(0xef4444); g.fillCircle(31, 16, 4);
+  g.fillStyle(0xfca5a5); g.fillCircle(30, 15, 2);
+
+  // Batang Meriam Meriam Panjang (Panzer Cannon)
+  g.fillStyle(0x334155); g.fillRect(21, 20, 6, 22);
+  g.fillStyle(0x64748b); g.fillRect(22, 20, 4, 22);
+  g.fillStyle(0x0f172a); g.fillRect(20, 40, 8, 3); // Moncong Meriam
+
+  // Rumah Turret (Kubah Kotak Berlapis di Tengah)
+  g.fillStyle(0x574d3a); g.fillRect(17, 14, 14, 16);
+  g.fillStyle(0x8c7e63); g.fillRect(18, 15, 12, 14);
+  g.fillStyle(0xb3a384); g.fillRect(20, 17, 8, 10);
+
+  g.generateTexture('tankEnemy', 48, 48);
+  g.clear();
+
+  // ==========================================
+  // 3. PESAWAT PEMAIN (RAIDEN JET)
+  // ==========================================
+  g.fillStyle(0x7f1d1d); g.fillTriangle(32, 2, 6, 48, 58, 48);
+  g.fillStyle(0xdc2626);
+  g.beginPath();
+  g.moveTo(32, 2); g.lineTo(37, 18); g.lineTo(46, 26); g.lineTo(60, 44);
+  g.lineTo(54, 52); g.lineTo(42, 46); g.lineTo(40, 58); g.lineTo(32, 53);
+  g.lineTo(24, 58); g.lineTo(22, 46); g.lineTo(10, 52); g.lineTo(4, 44);
+  g.lineTo(18, 26); g.lineTo(27, 18);
+  g.closePath(); g.fillPath();
+  g.fillStyle(0x1f2937); g.fillRect(22, 24, 5, 16); g.fillRect(37, 24, 5, 16);
+  g.fillStyle(0xef4444); g.fillTriangle(32, 8, 20, 38, 44, 38);
+  g.fillStyle(0x374151); g.fillRect(2, 38, 3, 12); g.fillRect(59, 38, 3, 12);
+  g.fillStyle(0xfacc15); g.fillTriangle(3, 34, 1, 38, 5, 38); g.fillTriangle(60, 34, 58, 38, 62, 38);
+  g.fillStyle(0x991b1b); g.fillTriangle(18, 42, 11, 58, 22, 54); g.fillTriangle(46, 42, 53, 58, 42, 54);
+  g.fillStyle(0x0284c7); g.fillTriangle(32, 12, 26, 28, 38, 28);
+  g.fillStyle(0x38bdf8); g.fillTriangle(32, 14, 28, 26, 36, 26);
+  g.fillStyle(0xffffff); g.fillTriangle(31, 15, 30, 22, 33, 18);
+  g.generateTexture('playerShip', 64, 64);
+  g.clear();
+
+  // ==========================================
+  // 4. PESAWAT MUSUH (STEALTH JET)
+  // ==========================================
+  g.fillStyle(0x0f172a);
+  g.beginPath();
+  g.moveTo(32, 62); g.lineTo(10, 18); g.lineTo(18, 8); g.lineTo(28, 20);
+  g.lineTo(32, 2); g.lineTo(36, 20); g.lineTo(46, 8); g.lineTo(54, 18); g.lineTo(32, 62);
+  g.closePath(); g.fillPath();
+  g.fillStyle(0x1e293b); g.fillTriangle(32, 12, 18, 42, 46, 42);
+  g.fillStyle(0x15803d); g.fillRect(16, 22, 4, 14); g.fillRect(44, 22, 4, 14);
+  g.fillStyle(0xd97706); g.fillTriangle(32, 18, 27, 30, 37, 30);
+  g.generateTexture('enemyShip', 64, 64);
+  g.clear();
+
+  // ==========================================
+  // 5. PROYEKTIL & ITEMS
+  // ==========================================
+  g.fillStyle(0xfacc15); g.fillCircle(4, 4, 4); g.generateTexture('bulletRed', 8, 8); g.clear();
+  g.fillStyle(0xf97316); g.fillCircle(4, 4, 4); g.generateTexture('bulletEnemy', 8, 8); g.clear();
+  
+  // ROKET BIRU HOMING MISSILE (12x24 Pixel)
+  g.fillStyle(0x1e3a8a); 
+  g.fillTriangle(6, 10, 0, 19, 6, 17);
+  g.fillTriangle(6, 10, 12, 19, 6, 17);
+  g.fillStyle(0x0284c7); g.fillRect(4, 6, 4, 12);
+  g.fillStyle(0x38bdf8); g.fillRect(5, 6, 2, 12);
+  g.fillStyle(0xe0f2fe); g.fillTriangle(6, 0, 3, 7, 9, 7);
+  g.fillStyle(0xfacc15); g.fillRect(4, 8, 4, 2);
+  g.fillStyle(0xf97316); g.fillTriangle(6, 23, 3, 18, 9, 18);
+  g.fillStyle(0xfacc15); g.fillTriangle(6, 21, 4, 18, 8, 18);
+  g.generateTexture('laserBlue', 12, 24); g.clear();
+
+  // Power-Up Item Icon (P)
+  g.fillStyle(0x2563eb); g.fillCircle(10, 10, 10); g.fillStyle(0x60a5fa); g.fillCircle(10, 10, 7); g.fillStyle(0xffffff); g.fillRect(8, 5, 4, 10); g.generateTexture('powerup', 20, 20); g.clear();
+  
+  // Partikel
+  g.fillStyle(0xffa500); g.fillCircle(3, 3, 3); g.generateTexture('particle', 6, 6); g.clear();
+  g.fillStyle(0x38bdf8); g.fillCircle(2, 2, 2); g.generateTexture('thrusterParticle', 4, 4); g.clear();
+}
+
+function create() {
+  this.input.once('pointerdown', () => AudioFX.init());
+
+  // Parallax Scrolling Terrain Background
+  terrainBg = this.add.tileSprite(0, 0, 450, 600, 'terrainBg').setOrigin(0, 0);
+
+  // Player Jet
+  player = this.physics.add.sprite(225, 520, 'playerShip').setCollideWorldBounds(true);
+  player.body.setSize(12, 12).setOffset(26, 26);
+
+  // Thruster Particle
+  emitterThruster = this.add.particles(0, 0, 'thrusterParticle', {
+    speedY: { min: 100, max: 180 },
+    scale: { start: 1.2, end: 0 },
+    blendMode: 'ADD',
+    lifespan: 220
+  });
+  emitterThruster.startFollow(player, 0, 26);
+
+  // Groups
+  bullets = this.physics.add.group({ defaultKey: 'bulletRed', maxSize: 60 });
+  enemyBullets = this.physics.add.group({ defaultKey: 'bulletEnemy', maxSize: 50 });
+  homingLasers = this.physics.add.group({ defaultKey: 'laserBlue', maxSize: 20 });
+  enemies = this.physics.add.group();
+  tanks = this.physics.add.group();
+  powerups = this.physics.add.group();
+
+  // Explosion Particle System
+  emitterExplode = this.add.particles(0, 0, 'particle', {
+    speed: { min: 50, max: 250 },
+    scale: { start: 2.0, end: 0 },
+    blendMode: 'ADD',
+    lifespan: 400,
+    emitting: false
+  });
+
+  // UI / HUD Header
+  scoreText = this.add.text(16, 16, 'SCORE: 0000', { fontSize: '14px', color: '#00ffcc', fontFamily: 'monospace' });
+  hpText = this.add.text(16, 36, 'HP: 100%', { fontSize: '14px', color: '#ff4444', fontFamily: 'monospace' });
+  weaponLevelText = this.add.text(330, 16, 'PWR: LV1', { fontSize: '14px', color: '#facc15', fontFamily: 'monospace' });
+
+  // Timers Spawner Musuh
+  this.time.addEvent({ delay: 1000, callback: spawnEnemy, callbackScope: this, loop: true });
+  this.time.addEvent({ delay: 2200, callback: spawnTank, callbackScope: this, loop: true });
+
+  // Collisions
+  this.physics.add.overlap(bullets, enemies, destroyEnemy, null, this);
+  this.physics.add.overlap(bullets, tanks, destroyEnemy, null, this);
+  this.physics.add.overlap(homingLasers, enemies, destroyEnemy, null, this);
+  this.physics.add.overlap(homingLasers, tanks, destroyEnemy, null, this);
+  this.physics.add.overlap(enemyBullets, player, hitPlayer, null, this);
+  this.physics.add.overlap(enemies, player, hitPlayer, null, this);
+  this.physics.add.overlap(tanks, player, hitPlayer, null, this);
+  this.physics.add.overlap(powerups, player, collectPowerup, null, this);
+
+  // Smooth Pointer Controls
+  this.input.on('pointermove', (pointer) => {
+    player.x = Phaser.Math.Clamp(pointer.x, 20, 430);
+    player.y = Phaser.Math.Clamp(pointer.y, 20, 580);
+  });
+}
+
+function update(time) {
+  // Scrolling Terain Vertikal
+  terrainBg.tilePositionY -= 1.2;
+
+  // Auto Firing Rate
+  if (time > lastFired && player.active) {
+    fireWeapons.call(this);
+    lastFired = time + (160 - weaponLevel * 10);
+  }
+
+  // Clean-up Out-of-Bounds Bullets
+  bullets.children.each(b => { if (b.active && b.y < -10) b.setActive(false).setVisible(false); });
+  enemyBullets.children.each(b => { if (b.active && (b.y > 610 || b.y < -10)) b.setActive(false).setVisible(false); });
+
+  // Homing Rocket Logic
+  homingLasers.children.each((laser) => {
+    if (laser.active) {
+      let target = getClosestEnemy(laser);
+      if (target) {
+        let angle = Phaser.Math.Angle.Between(laser.x, laser.y, target.x, target.y);
+        laser.setRotation(angle + Math.PI / 2);
+        this.physics.velocityFromRotation(angle, 480, laser.body.velocity);
+      } else {
+        laser.setVelocityY(-480);
+        laser.setRotation(0);
+      }
+      if (laser.y < -20) laser.setActive(false).setVisible(false);
+    }
+  }, this);
+}
+
+function fireWeapons() {
+  AudioFX.playLaser();
+  if (weaponLevel === 1) {
+    spawnBullet(this, player.x, player.y - 28, 0, -580);
+  } else if (weaponLevel === 2) {
+    spawnBullet(this, player.x - 12, player.y - 20, -0.05, -580);
+    spawnBullet(this, player.x + 12, player.y - 20, 0.05, -580);
+  } else {
+    const angles = [-0.2, 0, 0.2];
+    angles.forEach(ang => spawnBullet(this, player.x, player.y - 28, ang, -580));
+    let laser = homingLasers.get(player.x, player.y - 20);
+    if (laser) laser.setActive(true).setVisible(true);
+  }
+}
+
+function spawnBullet(scene, x, y, angleOffset, speed) {
+  let b = bullets.get(x, y);
+  if (b) {
+    b.setActive(true).setVisible(true);
+    scene.physics.velocityFromRotation(-Math.PI / 2 + angleOffset, Math.abs(speed), b.body.velocity);
+  }
+}
+
+function spawnEnemy() {
+  let x = Phaser.Math.Between(40, 410);
+  let enemy = enemies.create(x, -30, 'enemyShip');
+  enemy.body.setSize(24, 24).setOffset(20, 20);
+  enemy.setVelocityY(Phaser.Math.Between(90, 160));
+  
+  this.time.addEvent({
+    delay: Phaser.Math.Between(1000, 1800),
+    callback: () => {
+      if (enemy.active && player.active) {
+        let eb = enemyBullets.get(enemy.x, enemy.y + 20);
+        if (eb) {
+          eb.setActive(true).setVisible(true);
+          this.physics.moveToObject(eb, player, 220);
+        }
+      }
+    },
+    loop: false
+  });
+}
+
+function spawnTank() {
+  let x = Phaser.Math.Between(100, 380);
+  let tank = tanks.create(x, -48, 'tankEnemy');
+  tank.body.setSize(32, 32).setOffset(8, 8);
+  tank.setVelocityY(40);
+
+  this.time.addEvent({
+    delay: 1400,
+    callback: () => {
+      if (tank.active && player.active) {
+        let angle = Phaser.Math.Angle.Between(tank.x, tank.y, player.x, player.y);
+        tank.setRotation(angle - Math.PI / 2);
+
+        let eb = enemyBullets.get(tank.x, tank.y);
+        if (eb) {
+          eb.setActive(true).setVisible(true);
+          this.physics.velocityFromRotation(angle, 200, eb.body.velocity);
+        }
+      }
+    },
+    repeat: 2
+  });
+}
+
+function destroyEnemy(projectile, enemy) {
+  projectile.setActive(false).setVisible(false);
+
+  enemy.setTint(0xffffff);
+  this.time.delayedCall(50, () => { if (enemy.active) enemy.clearTint(); });
+
+  emitterExplode.explode(25, enemy.x, enemy.y);
+  this.cameras.main.shake(80, 0.008);
+  AudioFX.playExplode();
+
+  let points = enemy.texture.key === 'tankEnemy' ? 150 : 100;
+  showFloatingText(this, enemy.x, enemy.y, '+' + points);
+
+  if (Phaser.Math.Between(1, 100) <= 20) {
+    let p = powerups.create(enemy.x, enemy.y, 'powerup');
+    p.setVelocityY(80);
+  }
+
+  score += points;
+  scoreText.setText('SCORE: ' + String(score).padStart(4, '0'));
+  enemy.destroy();
+}
+
+function hitPlayer(playerObj, hazard) {
+  hazard.destroy ? hazard.destroy() : hazard.setActive(false).setVisible(false);
+
+  playerHp -= 15;
+  hpText.setText('HP: ' + Math.max(0, playerHp) + '%');
+  this.cameras.main.shake(150, 0.02);
+
+  player.setTint(0xff0000);
+  this.time.delayedCall(100, () => player.clearTint());
+
+  if (playerHp <= 0) {
+    emitterExplode.explode(60, player.x, player.y);
+    emitterThruster.stop();
+    player.setActive(false).setVisible(false);
+    this.add.text(130, 280, 'GAME OVER', { fontSize: '32px', color: '#ef4444', fontFamily: 'monospace' });
+  }
+}
+
+function collectPowerup(playerObj, powerup) {
+  powerup.destroy();
+  if (weaponLevel < 3) weaponLevel++;
+  weaponLevelText.setText('PWR: LV' + weaponLevel);
+  showFloatingText(this, player.x, player.y - 20, 'POWER UP!', '#38bdf8');
+}
+
+function showFloatingText(scene, x, y, msg, color = '#facc15') {
+  let txt = scene.add.text(x, y, msg, { fontSize: '12px', color: color, fontFamily: 'monospace' }).setOrigin(0.5);
+  scene.tweens.add({
+    targets: txt,
+    y: y - 30,
+    alpha: 0,
+    duration: 600,
+    onComplete: () => txt.destroy()
+  });
+}
+
+function getClosestEnemy(src) {
+  let closest = null;
+  let minDistance = 9999;
+  
+  const allTargets = [...enemies.getChildren(), ...tanks.getChildren()];
+  allTargets.forEach(e => {
+    if (e.active) {
+      let dist = Phaser.Math.Distance.Between(src.x, src.y, e.x, e.y);
+      if (dist < minDistance) {
+        minDistance = dist;
+        closest = e;
+      }
+    }
+  });
+  return closest;
+}
+`;
+
+    // Initialize Monaco Editor
+    require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' }});
+    require(['vs/editor/editor.main'], function() {
+      editor = monaco.editor.create(document.getElementById('editor-container'), {
+        value: starterCode,
+        language: 'javascript',
+        theme: 'vs-dark',
+        automaticLayout: true,
+        fontSize: 13,
+        minimap: { enabled: false }
+      });
+    });
+
+    // Jalankan Kode ke iFrame Sandbox
+    function runCode() {
+      const userCode = editor.getValue();
+      const iframe = document.getElementById('preview-iframe');
+
+      const iframeContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { margin: 0; padding: 0; overflow: hidden; background: #000; display: flex; justify-content: center; align-items: center; height: 100vh; }
+            canvas { border-radius: 6px; box-shadow: 0 0 20px rgba(239, 68, 68, 0.3); }
+          </style>
+          <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.0/dist/phaser.min.js"><\/script>
+        </head>
+        <body>
+          <script>
+            try {
+              ${userCode}
+            } catch (err) {
+              document.body.innerHTML = '<pre style="color: #ef4444; padding: 15px; font-family: monospace; font-size: 12px;">' + err + '</pre>';
+            }
+          <\/script>
+        </body>
+        </html>
+      `;
+
+      iframe.srcdoc = iframeContent;
+    }
+
+    document.getElementById('run-btn').addEventListener('click', runCode);
+    setTimeout(runCode, 1000);
+  </script>
+</body>
+</html>
