@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Super Mario Bros - Mushroom Power-Up Edition</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Monaco Editor (VS Code Engine) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/editor/editor.main.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/loader.min.js"></script>
+
+  <style>
+    body { background-color: #0b0f19; color: #f3f4f6; }
+  </style>
+</head>
+<body class="flex flex-col h-screen overflow-hidden font-sans">
+
+  <!-- Header Bar -->
+  <header class="h-14 bg-slate-900 border-b border-slate-800 px-6 flex items-center justify-between z-10">
+    <div class="flex items-center space-x-3">
+      <span class="flex h-3 w-3 relative">
+        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+        <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+      </span>
+      <h1 class="text-base font-bold text-slate-100 tracking-wide">
+        SUPER MARIO BROS <span class="text-xs bg-red-600/30 text-red-400 border border-red-500/40 px-2 py-0.5 rounded font-mono ml-2">MUSHROOM POWER-UP EDITION</span>
+      </h1>
+    </div>
+
+    <div class="flex items-center space-x-3">
+      <button id="run-btn" class="bg-red-600 hover:bg-red-500 text-white font-semibold px-4 py-1.5 rounded-md transition-all flex items-center space-x-2 shadow-lg shadow-red-600/30 text-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+        </svg>
+        <span>Jalankan & Mainkan!</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Workspace Area -->
+  <main class="flex flex-1 w-full overflow-hidden">
+    
+    <!-- Code Editor Area -->
+    <section class="w-1/2 border-r border-slate-800 flex flex-col">
+      <div class="bg-slate-900/90 px-4 py-2 text-xs font-mono text-slate-400 border-b border-slate-800 flex justify-between">
+        <span>game.js</span>
+        <span class="text-slate-500">Panah = Jalan | Spasi / Panah Atas = Lompat | Shift = Lari</span>
+      </div>
+      <div id="editor-container" class="w-full flex-1"></div>
+    </section>
+
+    <!-- Game Canvas Output Area -->
+    <section class="w-1/2 flex flex-col bg-slate-950 relative">
+      <div class="bg-slate-900/90 px-4 py-2 text-xs font-mono text-slate-400 border-b border-slate-800">
+        <span>Pratinjau Live Phaser WebGL</span>
+      </div>
+      
+      <div class="flex-1 flex items-center justify-center p-4">
+        <iframe id="preview-iframe" class="w-[450px] h-[600px] border border-slate-800 rounded-lg shadow-2xl bg-black"></iframe>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    let editor;
+
+    // KODE GAME SUPER MARIO BROS - MUSHROOM POWER-UP EDITION
+    const starterCode = `// GAME SUPER MARIO BROS - MUSHROOM POWER-UP EDITION
+const config = {
+  type: Phaser.AUTO,
+  width: 450,
+  height: 600,
+  backgroundColor: '#5c94fc',
+  physics: {
+    default: 'arcade',
+    arcade: {
+      gravity: { y: 1000 },
+      debug: false
+    }
+  },
+  scene: { preload, create, update }
+};
+
+const game = new Phaser.Game(config);
+
+let player, groundGroup, brickGroup, questionGroup, pipeGroup, enemyGroup, coinGroup, mushroomGroup;
+let cursors, shiftKey, jumpKey;
+let scoreText, coinText, livesText, worldText;
+let score = 0, coins = 0, lives = 3;
+let isDead = false;
+let isJumping = false;
+
+// Status Power-Up Mario
+let isBig = false;
+let isInvulnerable = false;
+
+// Audio Synthesizer Web Audio API
+const AudioFX = {
+  ctx: null,
+  init() {
+    if (!this.ctx) {
+      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume();
+    }
+  },
+  playJump() {
+    if (!this.ctx) return;
+    let osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(650, this.ctx.currentTime + 0.15);
+    gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+    osc.connect(gain); gain.connect(this.ctx.destination);
+    osc.start(); osc.stop(this.ctx.currentTime + 0.15);
+  },
+  playCoin() {
+    if (!this.ctx) return;
+    let osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(987.77, this.ctx.currentTime);
+    osc.frequency.setValueAtTime(1318.51, this.ctx.currentTime + 0.08);
+    gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.25);
+    osc.connect(gain); gain.connect(this.ctx.destination);
+    osc.start(); osc.stop(this.ctx.currentTime + 0.25);
+  },
+  playStomp() {
+    if (!this.ctx) return;
+    let osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(220, this.ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(50, this.ctx.currentTime + 0.1);
+    gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.1);
+    osc.connect(gain); gain.connect(this.ctx.destination);
+    osc.start(); osc.stop(this.ctx.currentTime + 0.1);
+  },
+  playBump() {
+    if (!this.ctx) return;
+    let osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(120, this.ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + 0.08);
+    gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+    osc.connect(gain); gain.connect(this.ctx.destination);
+    osc.start(); osc.stop(this.ctx.currentTime + 0.08);
+  },
+  playBreak() {
+    if (!this.ctx) return;
+    let osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(300, this.ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(60, this.ctx.currentTime + 0.15);
+    gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+    osc.connect(gain); gain.connect(this.ctx.destination);
+    osc.start(); osc.stop(this.ctx.currentTime + 0.15);
+  },
+  playPowerup() {
+    if (!this.ctx) return;
+    const notes = [330, 392, 659, 523, 587, 784];
+    notes.forEach((freq, i) => {
+      let osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(freq, this.ctx.currentTime + i * 0.05);
+      gain.gain.setValueAtTime(0.12, this.ctx.currentTime + i * 0.05);
+      gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + (i + 1) * 0.05);
+      osc.connect(gain); gain.connect(this.ctx.destination);
+      osc.start(this.ctx.currentTime + i * 0.05);
+      osc.stop(this.ctx.currentTime + (i + 1) * 0.05);
+    });
+  },
+  playPowerdown() {
+    if (!this.ctx) return;
+    let osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(400, this.ctx.currentTime);
+    osc.frequency.linearRampToValueAtTime(150, this.ctx.currentTime + 0.3);
+    gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
+    osc.connect(gain); gain.connect(this.ctx.destination);
+    osc.start(); osc.stop(this.ctx.currentTime + 0.3);
+  },
+  playDie() {
+    if (!this.ctx) return;
+    let osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(500, this.ctx.currentTime);
+    osc.frequency.linearRampToValueAtTime(100, this.ctx.currentTime + 0.6);
+    gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.6);
+    osc.connect(gain); gain.connect(this.ctx.destination);
+    osc.start(); osc.stop(this.ctx.currentTime + 0.6);
+  }
+};
+
+function preload() {
+  let g = this.make.graphics({ x: 0, y: 0, add: false });
+
+  // MARIO SPRITES
+  g.clear();
+  g.fillStyle(0xd82800); g.fillRect(3, 2, 9, 3); g.fillRect(2, 4, 12, 2);
+  g.fillStyle(0x887000); g.fillRect(2, 6, 4, 3); g.fillRect(5, 7, 2, 2); g.fillRect(10, 6, 2, 4);
+  g.fillStyle(0xfca044); g.fillRect(5, 6, 5, 4); g.fillRect(2, 9, 10, 2);
+  g.fillStyle(0x000000); g.fillRect(7, 8, 5, 2);
+  g.fillStyle(0xd82800); g.fillRect(3, 11, 10, 5); g.fillRect(1, 13, 14, 3);
+  g.fillStyle(0x0020c2); g.fillRect(4, 15, 8, 11); g.fillRect(2, 18, 12, 4);
+  g.fillStyle(0xfcb400); g.fillRect(4, 17, 2, 2); g.fillRect(10, 17, 2, 2);
+  g.fillStyle(0x887000); g.fillRect(2, 26, 5, 5); g.fillRect(9, 26, 5, 5);
+  g.generateTexture('mario_idle', 16, 32);
+
+  g.clear();
+  g.fillStyle(0xd82800); g.fillRect(4, 2, 9, 3); g.fillRect(3, 4, 12, 2);
+  g.fillStyle(0x887000); g.fillRect(3, 6, 4, 3);
+  g.fillStyle(0xfca044); g.fillRect(6, 6, 5, 4); g.fillRect(3, 9, 10, 2);
+  g.fillStyle(0x000000); g.fillRect(8, 8, 5, 2);
+  g.fillStyle(0xd82800); g.fillRect(4, 11, 9, 5); g.fillRect(2, 13, 13, 3);
+  g.fillStyle(0x0020c2); g.fillRect(4, 15, 8, 10); g.fillRect(3, 17, 10, 4);
+  g.fillStyle(0x887000); g.fillRect(1, 25, 6, 6); g.fillRect(8, 24, 6, 5);
+  g.generateTexture('mario_walk1', 16, 32);
+
+  g.clear();
+  g.fillStyle(0xd82800); g.fillRect(3, 2, 9, 3); g.fillRect(2, 4, 12, 2);
+  g.fillStyle(0x887000); g.fillRect(2, 6, 4, 3);
+  g.fillStyle(0xfca044); g.fillRect(5, 6, 5, 4); g.fillRect(2, 9, 10, 2);
+  g.fillStyle(0x000000); g.fillRect(7, 8, 5, 2);
+  g.fillStyle(0xd82800); g.fillRect(3, 11, 10, 5); g.fillRect(1, 13, 14, 3);
+  g.fillStyle(0x0020c2); g.fillRect(3, 15, 9, 10); g.fillRect(2, 17, 11, 4);
+  g.fillStyle(0x887000); g.fillRect(3, 25, 5, 6); g.fillRect(10, 25, 5, 6);
+  g.generateTexture('mario_walk2', 16, 32);
+
+  g.clear();
+  g.fillStyle(0xd82800); g.fillRect(4, 1, 9, 3); g.fillRect(3, 3, 12, 2);
+  g.fillStyle(0x887000); g.fillRect(3, 5, 4, 3);
+  g.fillStyle(0xfca044); g.fillRect(6, 5, 5, 4); g.fillRect(3, 8, 10, 2);
+  g.fillStyle(0x000000); g.fillRect(8, 7, 5, 2);
+  g.fillStyle(0xd82800); g.fillRect(2, 10, 12, 5);
+  g.fillStyle(0x0020c2); g.fillRect(3, 15, 10, 8);
+  g.fillStyle(0x887000); g.fillRect(0, 21, 6, 6); g.fillRect(10, 23, 6, 6);
+  g.generateTexture('mario_jump', 16, 32);
+
+  g.clear();
+  g.fillStyle(0xd82800); g.fillRect(3, 4, 10, 4);
+  g.fillStyle(0xfca044); g.fillRect(4, 8, 8, 4);
+  g.fillStyle(0x000000); g.fillRect(4, 9, 2, 2); g.fillRect(10, 9, 2, 2);
+  g.fillStyle(0xd82800); g.fillRect(2, 12, 12, 6);
+  g.fillStyle(0x0020c2); g.fillRect(3, 18, 10, 8);
+  g.fillStyle(0x887000); g.fillRect(1, 26, 5, 5); g.fillRect(10, 26, 5, 5);
+  g.generateTexture('mario_die', 16, 32);
+
+  // MUSHROOM SPRITES
+  g.clear();
+  g.fillStyle(0xd82800); g.fillRect(2, 2, 12, 7);
+  g.fillStyle(0xffffff); g.fillRect(4, 3, 3, 3); g.fillRect(9, 3, 3, 3);
+  g.fillStyle(0xfca044); g.fillRect(4, 9, 8, 5);
+  g.fillStyle(0x000000); g.fillRect(5, 10, 2, 3); g.fillRect(9, 10, 2, 3);
+  g.generateTexture('mushroom_super', 16, 16);
+
+  g.clear();
+  g.fillStyle(0x00a800); g.fillRect(2, 2, 12, 7);
+  g.fillStyle(0xffffff); g.fillRect(4, 3, 3, 3); g.fillRect(9, 3, 3, 3);
+  g.fillStyle(0xfca044); g.fillRect(4, 9, 8, 5);
+  g.fillStyle(0x000000); g.fillRect(5, 10, 2, 3); g.fillRect(9, 10, 2, 3);
+  g.generateTexture('mushroom_1up', 16, 16);
+
+  // TILES & BLOCKS
+  g.clear();
+  g.fillStyle(0x00a800); g.fillRect(0, 0, 16, 4);
+  g.fillStyle(0xd84000); g.fillRect(0, 4, 16, 12);
+  g.fillStyle(0x000000); g.fillRect(0, 4, 16, 1);
+  for (let i = 5; i < 16; i += 4) { g.fillStyle(0x882000); g.fillRect((i*3)%12, i, 4, 2); }
+  g.generateTexture('ground', 16, 16);
+
+  g.clear();
+  g.fillStyle(0xd84000); g.fillRect(0, 0, 16, 16);
+  g.fillStyle(0x000000); g.fillRect(0, 0, 16, 1); g.fillRect(0, 7, 16, 1); g.fillRect(0, 15, 16, 1);
+  g.fillRect(7, 0, 1, 7); g.fillRect(15, 0, 1, 7); g.fillRect(3, 8, 1, 7); g.fillRect(11, 8, 1, 7);
+  g.fillStyle(0xfca044); g.fillRect(1, 1, 6, 1); g.fillRect(1, 8, 2, 1); g.fillRect(9, 8, 2, 1);
+  g.generateTexture('brick', 16, 16);
+
+  g.clear();
+  g.fillStyle(0xfcb400); g.fillRect(0, 0, 16, 16);
+  g.fillStyle(0x000000); g.fillRect(0, 0, 16, 1); g.fillRect(0, 15, 16, 1); g.fillRect(0, 0, 1, 16); g.fillRect(15, 0, 1, 16);
+  g.fillRect(2, 2, 2, 2); g.fillRect(12, 2, 2, 2); g.fillRect(2, 12, 2, 2); g.fillRect(12, 12, 2, 2);
+  g.fillStyle(0x882000); g.fillRect(5, 3, 6, 2); g.fillRect(9, 5, 2, 3); g.fillRect(7, 7, 3, 2); g.fillRect(7, 10, 2, 2);
+  g.generateTexture('questionBlock', 16, 16);
+
+  g.clear();
+  g.fillStyle(0x887000); g.fillRect(0, 0, 16, 16);
+  g.fillStyle(0x000000); g.fillRect(0, 0, 16, 1); g.fillRect(0, 15, 16, 1); g.fillRect(0, 0, 1, 16); g.fillRect(15, 0, 1, 16);
+  g.fillRect(2, 2, 2, 2); g.fillRect(12, 2, 2, 2); g.fillRect(2, 12, 2, 2); g.fillRect(12, 12, 2, 2);
+  g.generateTexture('emptyBlock', 16, 16);
+
+  g.clear();
+  g.fillStyle(0x00a800); g.fillRect(0, 0, 32, 16);
+  g.fillStyle(0x00f800); g.fillRect(2, 2, 4, 12);
+  g.fillStyle(0x005000); g.fillRect(28, 0, 4, 16); g.fillRect(0, 0, 32, 1); g.fillRect(0, 15, 32, 1);
+  g.generateTexture('pipeTop', 32, 16);
+
+  g.clear();
+  g.fillStyle(0x00a800); g.fillRect(2, 0, 28, 16);
+  g.fillStyle(0x00f800); g.fillRect(4, 0, 4, 16);
+  g.fillStyle(0x005000); g.fillRect(26, 0, 4, 16);
+  g.generateTexture('pipeBody', 32, 16);
+
+  // ENEMIES & ITEMS
+  g.clear();
+  g.fillStyle(0xd84000); g.fillRect(4, 0, 8, 2); g.fillRect(2, 2, 12, 6); g.fillRect(0, 6, 16, 4);
+  g.fillStyle(0xfca044); g.fillRect(4, 10, 8, 3);
+  g.fillStyle(0x000000); g.fillRect(3, 4, 2, 4); g.fillRect(11, 4, 2, 4);
+  g.fillStyle(0xffffff); g.fillRect(3, 4, 1, 2); g.fillRect(11, 4, 1, 2);
+  g.fillStyle(0x000000); g.fillRect(0, 13, 6, 3); g.fillRect(10, 13, 6, 3);
+  g.generateTexture('goomba', 16, 16);
+
+  g.clear();
+  g.fillStyle(0xd84000); g.fillRect(2, 8, 12, 4);
+  g.fillStyle(0xfca044); g.fillRect(3, 12, 10, 2);
+  g.fillStyle(0x000000); g.fillRect(0, 14, 5, 2); g.fillRect(11, 14, 5, 2);
+  g.generateTexture('goomba_flat', 16, 16);
+
+  g.clear();
+  g.fillStyle(0xfcb400); g.fillRect(2, 0, 6, 14); g.fillRect(0, 2, 10, 10);
+  g.fillStyle(0xffffff); g.fillRect(2, 2, 2, 10);
+  g.fillStyle(0x882000); g.fillRect(6, 3, 2, 8);
+  g.generateTexture('coin', 10, 14);
+
+  g.clear();
+  g.fillStyle(0xffffff); g.fillRect(10, 0, 30, 20); g.fillRect(0, 10, 50, 10);
+  g.generateTexture('cloud', 50, 20);
+}
+
+function create() {
+  const unlockAudio = () => { AudioFX.init(); };
+  this.input.on('pointerdown', unlockAudio);
+  this.input.keyboard.on('keydown', unlockAudio);
+
+  const levelWidth = 2400;
+  this.physics.world.setBounds(0, 0, levelWidth, 600);
+  this.cameras.main.setBounds(0, 0, levelWidth, 600);
+
+  for (let x = 100; x < levelWidth; x += Phaser.Math.Between(200, 400)) {
+    this.add.image(x, Phaser.Math.Between(50, 180), 'cloud').setAlpha(0.8).setScale(1.5);
+  }
+
+  groundGroup = this.physics.add.staticGroup();
+  brickGroup = this.physics.add.staticGroup();
+  questionGroup = this.physics.add.staticGroup();
+  pipeGroup = this.physics.add.staticGroup();
+  enemyGroup = this.physics.add.group();
+  coinGroup = this.physics.add.group();
+  mushroomGroup = this.physics.add.group();
+
+  for (let x = 16; x < levelWidth; x += 32) {
+    if ((x >= 600 && x <= 672) || (x >= 1300 && x <= 1372)) continue;
+    groundGroup.create(x, 552, 'ground').setScale(2).refreshBody();
+    this.add.image(x, 584, 'ground').setScale(2);
+  }
+
+  const createPipe = (x, height) => {
+    pipeGroup.create(x, 536 - (height * 32), 'pipeTop').setScale(2).refreshBody();
+    for (let h = 0; h < height; h++) {
+      pipeGroup.create(x, 536 - (h * 32), 'pipeBody').setScale(2).refreshBody();
+    }
+  };
+  createPipe(300, 1);
+  createPipe(500, 2);
+  createPipe(900, 2);
+  createPipe(1500, 3);
+
+  const createBrick = (x, y) => brickGroup.create(x, y, 'brick').setScale(2).refreshBody();
+  const createQBlock = (x, y, contentType = 'coin') => {
+    let q = questionGroup.create(x, y, 'questionBlock').setScale(2).refreshBody();
+    q.contentType = contentType;
+    return q;
+  };
+
+  createQBlock(200, 360, 'coin');
+  createBrick(260, 360);
+  createQBlock(292, 360, 'mushroom_super');
+  createBrick(324, 360);
+  createQBlock(356, 360, 'coin');
+
+  for (let i = 0; i < 4; i++) {
+    for (let j = 0; j <= i; j++) {
+      createBrick(1000 + i * 32, 504 - j * 32);
+    }
+  }
+
+  createQBlock(1200, 360, 'mushroom_1up');
+  createQBlock(1260, 240, 'coin');
+
+  for (let cx = 750; cx <= 850; cx += 32) {
+    let c = coinGroup.create(cx, 340, 'coin').setScale(1.5);
+    c.body.setAllowGravity(false);
+  }
+
+  const spawnGoomba = (x) => {
+    let g = enemyGroup.create(x, 500, 'goomba').setScale(2);
+    g.setCollideWorldBounds(true);
+    g.setBounce(1, 0);
+    g.setVelocityX(-60);
+  };
+  spawnGoomba(420);
+  spawnGoomba(780);
+  spawnGoomba(1100);
+  spawnGoomba(1400);
+  spawnGoomba(1650);
+
+  player = this.physics.add.sprite(50, 450, 'mario_idle').setScale(2);
+  player.setCollideWorldBounds(true);
+  player.body.setGravityY(200);
+  player.body.setSize(12, 26).setOffset(2, 6);
+  player.setDragX(600);
+
+  this.anims.create({
+    key: 'walk',
+    frames: [{ key: 'mario_walk1' }, { key: 'mario_walk2' }],
+    frameRate: 10,
+    repeat: -1
+  });
+
+  this.cameras.main.startFollow(player, true, 0.1, 0.1);
+
+  this.physics.add.collider(player, groundGroup);
+  this.physics.add.collider(player, pipeGroup);
+  this.physics.add.collider(enemyGroup, groundGroup);
+  this.physics.add.collider(enemyGroup, pipeGroup);
+  this.physics.add.collider(enemyGroup, brickGroup);
+  this.physics.add.collider(enemyGroup, questionGroup);
+  this.physics.add.collider(enemyGroup, enemyGroup);
+
+  this.physics.add.collider(mushroomGroup, groundGroup);
+  this.physics.add.collider(mushroomGroup, pipeGroup);
+  this.physics.add.collider(mushroomGroup, brickGroup);
+  this.physics.add.collider(mushroomGroup, questionGroup);
+
+  this.physics.add.collider(player, brickGroup, (p, brick) => {
+    if (p.body.touching.up && brick.body.touching.down) {
+      if (isBig) {
+        AudioFX.playBreak();
+        score += 50;
+        updateHUD();
+        brick.destroy();
+      } else {
+        AudioFX.playBump();
+        if (!brick.isBumping) {
+          brick.isBumping = true;
+          this.tweens.add({
+            targets: brick,
+            y: brick.y - 8,
+            duration: 60,
+            yoyo: true,
+            onComplete: () => {
+              brick.isBumping = false;
+              brick.refreshBody();
+            }
+          });
+        }
+      }
+    }
+  });
+
+  this.physics.add.collider(player, questionGroup, (p, qBlock) => {
+    if (p.body.touching.up && qBlock.body.touching.down && qBlock.texture.key === 'questionBlock') {
+      qBlock.setTexture('emptyBlock');
+
+      if (qBlock.contentType === 'coin') {
+        AudioFX.playCoin();
+        score += 200;
+        coins++;
+        updateHUD();
+
+        let coinPop = this.add.image(qBlock.x, qBlock.y - 20, 'coin').setScale(1.5);
+        this.tweens.add({
+          targets: coinPop,
+          y: qBlock.y - 50,
+          alpha: 0,
+          duration: 300,
+          onComplete: () => coinPop.destroy()
+        });
+      } else {
+        spawnMushroom.call(this, qBlock.x, qBlock.y, qBlock.contentType);
+      }
+    }
+  });
+
+  this.physics.add.overlap(player, mushroomGroup, (p, shroom) => {
+    let type = shroom.shroomType;
+    shroom.destroy();
+
+    if (type === 'mushroom_super') {
+      AudioFX.playPowerup();
+      score += 1000;
+      updateHUD();
+
+      if (!isBig) {
+        isBig = true;
+        p.setScale(2.5);
+        p.body.setSize(12, 28).setOffset(2, 4);
+
+        this.tweens.add({
+          targets: p,
+          alpha: 0.5,
+          duration: 50,
+          yoyo: true,
+          repeat: 5,
+          onComplete: () => p.setAlpha(1)
+        });
+      }
+    } else if (type === 'mushroom_1up') {
+      AudioFX.playPowerup();
+      lives++;
+      score += 1000;
+      updateHUD();
+
+      let txt = this.add.text(shroom.x - 20, shroom.y - 20, '+1 LIFE', { fontSize: '14px', color: '#00ff00', fontFamily: 'monospace' });
+      this.tweens.add({
+        targets: txt,
+        y: txt.y - 40,
+        alpha: 0,
+        duration: 800,
+        onComplete: () => txt.destroy()
+      });
+    }
+  });
+
+  this.physics.add.overlap(player, coinGroup, (p, coin) => {
+    coin.destroy();
+    AudioFX.playCoin();
+    score += 100;
+    coins++;
+    updateHUD();
+  });
+
+  this.physics.add.collider(player, enemyGroup, (p, enemy) => {
+    if (enemy.isStomped) return;
+
+    if (p.body.touching.down && enemy.body.touching.up) {
+      AudioFX.playStomp();
+      p.setVelocityY(-320);
+      score += 100;
+      updateHUD();
+
+      enemy.isStomped = true;
+      enemy.setTexture('goomba_flat');
+      enemy.setVelocityX(0);
+      enemy.body.enable = false;
+
+      this.time.delayedCall(300, () => enemy.destroy());
+    } else {
+      if (isInvulnerable) return;
+
+      if (isBig) {
+        isBig = false;
+        isInvulnerable = true;
+        AudioFX.playPowerdown();
+
+        p.setScale(2);
+        p.body.setSize(12, 26).setOffset(2, 6);
+
+        this.tweens.add({
+          targets: p,
+          alpha: 0.3,
+          duration: 100,
+          yoyo: true,
+          repeat: 12,
+          onComplete: () => {
+            p.setAlpha(1);
+            isInvulnerable = false;
+          }
+        });
+      } else {
+        playerHit.call(this);
+      }
+    }
+  });
+
+  cursors = this.input.keyboard.createCursorKeys();
+  shiftKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
+  jumpKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+
+  scoreText = this.add.text(20, 20, 'MARIO\\n000000', { fontSize: '14px', color: '#ffffff', fontFamily: 'monospace' }).setScrollFactor(0);
+  coinText = this.add.text(140, 20, 'COINS\\n*x00', { fontSize: '14px', color: '#ffffff', fontFamily: 'monospace' }).setScrollFactor(0);
+  worldText = this.add.text(250, 20, 'WORLD\\n 1-1', { fontSize: '14px', color: '#ffffff', fontFamily: 'monospace' }).setScrollFactor(0);
+  livesText = this.add.text(350, 20, 'LIVES\\n  x3', { fontSize: '14px', color: '#ffffff', fontFamily: 'monospace' }).setScrollFactor(0);
+}
+
+function spawnMushroom(x, y, type) {
+  let shroom = mushroomGroup.create(x, y - 16, type).setScale(2);
+  shroom.shroomType = type;
+  shroom.setCollideWorldBounds(true);
+  shroom.setBounce(1, 0);
+
+  shroom.body.setAllowGravity(false);
+  this.tweens.add({
+    targets: shroom,
+    y: y - 32,
+    duration: 300,
+    onComplete: () => {
+      if (shroom.active) {
+        shroom.body.setAllowGravity(true);
+        shroom.setVelocityX(80);
+      }
+    }
+  });
+}
+
+function update() {
+  if (isDead) return;
+
+  const isRunning = shiftKey.isDown;
+  const accel = isRunning ? 500 : 320;
+  const maxVelocityX = isRunning ? 260 : 160;
+
+  player.setMaxVelocity(maxVelocityX, 600);
+
+  if (cursors.left.isDown) {
+    player.setAccelerationX(-accel);
+    player.setFlipX(true);
+    if (player.body.touching.down) player.anims.play('walk', true);
+  } else if (cursors.right.isDown) {
+    player.setAccelerationX(accel);
+    player.setFlipX(false);
+    if (player.body.touching.down) player.anims.play('walk', true);
+  } else {
+    player.setAccelerationX(0);
+    if (player.body.touching.down) {
+      player.anims.stop();
+      player.setTexture('mario_idle');
+    }
+  }
+
+  const isJumpPressed = Phaser.Input.Keyboard.JustDown(cursors.up) || Phaser.Input.Keyboard.JustDown(jumpKey);
+  const isJumpHolding = cursors.up.isDown || jumpKey.isDown;
+
+  if (isJumpPressed && player.body.touching.down) {
+    player.setVelocityY(-380);
+    isJumping = true;
+    AudioFX.playJump();
+  }
+
+  if (isJumping && isJumpHolding && player.body.velocity.y < 0) {
+    player.body.velocity.y -= 12;
+  }
+
+  if (!isJumpHolding || player.body.velocity.y >= 0) {
+    isJumping = false;
+  }
+
+  if (!player.body.touching.down) {
+    player.anims.stop();
+    player.setTexture('mario_jump');
+  }
+
+  enemyGroup.getChildren().forEach(enemy => {
+    if (enemy.y > 550) {
+      enemy.destroy();
+    }
+  });
+
+  if (player.y > 550) {
+    playerHit.call(this);
+  }
+}
+
+function updateHUD() {
+  scoreText.setText('MARIO\\n' + String(score).padStart(6, '0'));
+  coinText.setText('COINS\\n*x' + String(coins).padStart(2, '0'));
+  livesText.setText('LIVES\\n  x' + lives);
+}
+
+function playerHit() {
+  if (isDead) return;
+  isDead = true;
+  isBig = false;
+  AudioFX.playDie();
+  lives--;
+  updateHUD();
+
+  player.anims.stop();
+  player.setTexture('mario_die');
+  player.setScale(2);
+  player.body.setEnable(false);
+
+  this.tweens.add({
+    targets: player,
+    y: player.y - 60,
+    duration: 300,
+    ease: 'Power1',
+    onComplete: () => {
+      this.tweens.add({
+        targets: player,
+        y: 650,
+        duration: 800,
+        ease: 'Power1',
+        onComplete: () => {
+          if (lives > 0) {
+            isDead = false;
+            player.body.setEnable(true);
+            player.setPosition(50, 450);
+          } else {
+            this.add.text(this.cameras.main.scrollX + 130, 280, 'GAME OVER', { fontSize: '32px', color: '#ef4444', fontFamily: 'monospace' }).setScrollFactor(0);
+          }
+        }
+      });
+    }
+  });
+}
+`;
+
+    // Initialize Monaco Editor
+    require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' }});
+    require(['vs/editor/editor.main'], function() {
+      editor = monaco.editor.create(document.getElementById('editor-container'), {
+        value: starterCode,
+        language: 'javascript',
+        theme: 'vs-dark',
+        automaticLayout: true,
+        fontSize: 13,
+        minimap: { enabled: false }
+      });
+    });
+
+    // Jalankan Kode ke iFrame Sandbox
+    function runCode() {
+      const userCode = editor.getValue();
+      const iframe = document.getElementById('preview-iframe');
+
+      const iframeContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { margin: 0; padding: 0; overflow: hidden; background: #000; display: flex; justify-content: center; align-items: center; height: 100vh; }
+            canvas { border-radius: 6px; box-shadow: 0 0 20px rgba(239, 68, 68, 0.3); }
+          </style>
+          <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.0/dist/phaser.min.js"><\/script>
+        </head>
+        <body>
+          <script>
+            try {
+              ${userCode}
+            } catch (err) {
+              document.body.innerHTML = '<pre style="color: #ef4444; padding: 15px; font-family: monospace; font-size: 12px;">' + err + '</pre>';
+            }
+          <\/script>
+        </body>
+        </html>
+      `;
+
+      iframe.srcdoc = iframeContent;
+    }
+
+    document.getElementById('run-btn').addEventListener('click', runCode);
+    setTimeout(runCode, 1000);
+  </script>
+</body>
+</html>
