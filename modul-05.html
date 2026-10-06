@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OutRun Pseudo-3D Engine - Visual Spec Edition</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/editor/editor.main.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/loader.min.js"></script>
+
+  <style>
+    body { background-color: #0b0f19; color: #f3f4f6; }
+  </style>
+</head>
+<body class="flex flex-col h-screen overflow-hidden font-sans">
+
+  <header class="h-14 bg-slate-900 border-b border-slate-800 px-6 flex items-center justify-between z-10">
+    <div class="flex items-center space-x-3">
+      <span class="flex h-3 w-3 relative">
+        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-500 opacity-75"></span>
+        <span class="relative inline-flex rounded-full h-3 w-3 bg-pink-600"></span>
+      </span>
+      <h1 class="text-base font-bold text-slate-100 tracking-wide">
+        SEGA OUTRUN <span class="text-xs bg-pink-600/30 text-pink-400 border border-pink-500/40 px-2 py-0.5 rounded font-mono ml-2">INFOGRAPHIC SPEC EDITION</span>
+      </h1>
+    </div>
+
+    <div class="flex items-center space-x-3">
+      <button id="run-btn" class="bg-pink-600 hover:bg-pink-500 text-white font-semibold px-4 py-1.5 rounded-md transition-all flex items-center space-x-2 shadow-lg shadow-pink-600/30 text-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+        </svg>
+        <span>Start Engine!</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="flex flex-1 w-full overflow-hidden">
+    <section class="w-1/2 border-r border-slate-800 flex flex-col">
+      <div class="bg-slate-900/90 px-4 py-2 text-xs font-mono text-slate-400 border-b border-slate-800 flex justify-between">
+        <span>outrun.js</span>
+        <span class="text-slate-500">Retro Graphics & Pseudo-3D Math</span>
+      </div>
+      <div id="editor-container" class="w-full flex-1"></div>
+    </section>
+
+    <section class="w-1/2 flex flex-col bg-slate-950 relative">
+      <div class="bg-slate-900/90 px-4 py-2 text-xs font-mono text-slate-400 border-b border-slate-800">
+        <span>Pratinjau Live Canvas HTML5</span>
+      </div>
+      
+      <div class="flex-1 flex items-center justify-center p-4">
+        <iframe id="preview-iframe" class="w-[800px] h-[600px] border border-slate-800 rounded-lg shadow-2xl bg-black"></iframe>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    let editor;
+
+    const starterCode = `// =================================================================
+// SEGA OUTRUN ENGINE - ACCURATE RETRO VISUAL SPEC
+// =================================================================
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = (rect.width || 800) * dpr;
+  canvas.height = (rect.height || 600) * dpr;
+  ctx.scale(dpr, dpr);
+}
+window.addEventListener('resize', resizeCanvas);
+
+// -----------------------------------------------------------------
+// CONSTANTS & PARAMS
+// -----------------------------------------------------------------
+const ROAD_WIDTH = 2000;
+const SEGMENT_LENGTH = 200;
+const RUMBLE_LENGTH = 3;
+const TOTAL_SEGMENTS = 1600;
+const DRAW_DISTANCE = 320;
+const FIELD_OF_VIEW = 100;
+const CAMERA_HEIGHT = 1050;
+const CAMERA_DEPTH = 1 / Math.tan((FIELD_OF_VIEW / 2) * Math.PI / 180);
+
+// Physics
+const MAX_SPEED = SEGMENT_LENGTH * 85;
+const ACCEL = MAX_SPEED / 4.5;
+const BREAKING = -MAX_SPEED * 1.2;
+const DECEL = -MAX_SPEED / 5;
+
+// Game States
+let gameState = 'PLAYING';
+let timeLeft = 69.0;
+let stage = 3;
+let playerX = 0;
+let playerZ = 0;
+let playerXInertia = 0;
+let speed = 0;
+let carTilt = 0;
+let skyOffset = 0;
+let score = 3480750;
+
+let segments = [];
+let cars = [];
+let keys = { left: false, right: false, faster: false, slower: false };
+
+// -----------------------------------------------------------------
+// AUDIO SYSTEM
+// -----------------------------------------------------------------
+let audioCtx = null;
+let engineOsc = null;
+let engineGain = null;
+
+function initAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    engineOsc = audioCtx.createOscillator();
+    engineGain = audioCtx.createGain();
+    engineOsc.type = 'sawtooth';
+    engineOsc.frequency.setValueAtTime(60, audioCtx.currentTime);
+    engineGain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+    engineOsc.connect(engineGain);
+    engineGain.connect(audioCtx.destination);
+    engineOsc.start();
+  }
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+}
+
+function updateEngineSound() {
+  if (!audioCtx || !engineOsc || !engineGain) return;
+  if (gameState === 'GAMEOVER') {
+    engineGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1);
+    return;
+  }
+  engineGain.gain.setTargetAtTime(0.05, audioCtx.currentTime, 0.1);
+  let speedRatio = speed / MAX_SPEED;
+  let freq = 50 + (speedRatio * 180);
+  engineOsc.frequency.setTargetAtTime(freq, audioCtx.currentTime, 0.05);
+}
+
+function playCrashSound() {
+  if (!audioCtx) return;
+  let osc = audioCtx.createOscillator();
+  let gain = audioCtx.createGain();
+  osc.type = 'square';
+  osc.frequency.setValueAtTime(120, audioCtx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.3);
+  gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+  gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.3);
+}
+
+function resetGame() {
+  gameState = 'PLAYING';
+  timeLeft = 69.0;
+  stage = 3;
+  playerX = 0;
+  playerZ = 0;
+  playerXInertia = 0;
+  speed = 0;
+  score = 3480750;
+  createTrack();
+}
+
+// -----------------------------------------------------------------
+// CONTROLS
+// -----------------------------------------------------------------
+window.addEventListener('keydown', e => {
+  initAudio();
+  if (gameState === 'GAMEOVER' && (e.key === 'Enter' || e.key === 'r' || e.key === 'R')) {
+    resetGame();
+    return;
+  }
+  if (['ArrowLeft', 'a', 'A'].includes(e.key)) keys.left = true;
+  if (['ArrowRight', 'd', 'D'].includes(e.key)) keys.right = true;
+  if (['ArrowUp', 'w', 'W'].includes(e.key)) keys.faster = true;
+  if (['ArrowDown', 's', 'S'].includes(e.key)) keys.slower = true;
+});
+
+window.addEventListener('keyup', e => {
+  if (['ArrowLeft', 'a', 'A'].includes(e.key)) keys.left = false;
+  if (['ArrowRight', 'd', 'D'].includes(e.key)) keys.right = false;
+  if (['ArrowUp', 'w', 'W'].includes(e.key)) keys.faster = false;
+  if (['ArrowDown', 's', 'S'].includes(e.key)) keys.slower = false;
+});
+
+// -----------------------------------------------------------------
+// TRACK & VEGETATION GENERATION
+// -----------------------------------------------------------------
+function createTrack() {
+  segments = [];
+  
+  for (let i = 0; i < TOTAL_SEGMENTS; i++) {
+    let curve = 0;
+    let hill = 0;
+
+    if (i > 100 && i < 300) curve = 2.2;
+    if (i > 350 && i < 550) curve = -3.0;
+    if (i > 600 && i < 900) {
+      curve = 1.8;
+      hill = Math.sin((i - 600) / 30) * 1200;
+    }
+    if (i > 950 && i < 1250) {
+      curve = -2.5;
+      hill = Math.cos((i - 950) / 25) * 1600;
+    }
+
+    const isDark = Math.floor(i / RUMBLE_LENGTH) % 2 === 0;
+    const colors = {
+      grass:  isDark ? '#15803d' : '#16a34a', // Retro Green Grass
+      rumble: isDark ? '#dc2626' : '#ffffff', // Red & White Rumble Strip
+      road:   isDark ? '#4b5563' : '#374151', // Asphalt Grey
+      lane:   isDark ? '#ffffff' : 'transparent' // White Dash Lane
+    };
+
+    let sprites = [];
+    
+    // A. Pohon Palem Utama & B. Deretan Pohon Palem Jauh
+    if (i % 10 === 0) {
+      sprites.push({ type: 'palm', x: -1.7 });
+      sprites.push({ type: 'palm', x: 1.7 });
+    }
+
+    // C. Vegetasi Pendukung (Kaktus & Semak Pasir)
+    if (i % 6 === 0) {
+      if (i % 12 === 0) {
+        sprites.push({ type: 'cactus', x: -1.45 });
+        sprites.push({ type: 'shrub', x: 1.45 });
+      } else {
+        sprites.push({ type: 'shrub', x: -1.4 });
+        sprites.push({ type: 'cactus', x: 1.5 });
+      }
+    }
+
+    if (i % 30 === 0) {
+      sprites.push({ type: 'billboard', x: (i % 60 === 0) ? -2.2 : 2.2, text: i % 60 === 0 ? 'RETRO 80S' : 'OUTRUN' });
+    }
+
+    segments.push({
+      index: i,
+      p1: { world: { x: 0, y: hill, z: i * SEGMENT_LENGTH }, camera: {}, screen: {} },
+      p2: { world: { x: 0, y: hill, z: (i + 1) * SEGMENT_LENGTH }, camera: {}, screen: {} },
+      curve: curve,
+      colors: colors,
+      sprites: sprites
+    });
+  }
+
+  cars = [];
+  for (let n = 0; n < 35; n++) {
+    cars.push({
+      offset: (Math.random() * 1.6) - 0.8,
+      z: Math.random() * TOTAL_SEGMENTS * SEGMENT_LENGTH,
+      speed: (MAX_SPEED * 0.3) + (Math.random() * MAX_SPEED * 0.35),
+      color: ['#06b6d4', '#eab308', '#22c55e', '#a855f7'][Math.floor(Math.random() * 4)]
+    });
+  }
+}
+
+// -----------------------------------------------------------------
+// PROJECTION MATH
+// -----------------------------------------------------------------
+function project(p, cameraX, cameraY, cameraZ, cameraDepth, width, height, roadWidth) {
+  p.camera.x = (p.world.x || 0) - cameraX;
+  p.camera.y = (p.world.y || 0) - cameraY;
+  p.camera.z = (p.world.z || 0) - cameraZ;
+  
+  p.screen.scale = cameraDepth / Math.max(0.001, p.camera.z);
+  p.screen.x = Math.round((width / 2) + (p.screen.scale * p.camera.x * width / 2));
+  p.screen.y = Math.round((height / 2) - (p.screen.scale * p.camera.y * height / 2));
+  p.screen.w = Math.round(p.screen.scale * roadWidth * width / 2);
+}
+
+function drawPolygon(ctx, x1, y1, w1, x2, y2, w2, color) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(x1 - w1, y1);
+  ctx.lineTo(x2 - w2, y2);
+  ctx.lineTo(x2 + w2, y2);
+  ctx.lineTo(x1 + w1, y1);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function findSegment(z) {
+  let index = Math.floor(z / SEGMENT_LENGTH) % TOTAL_SEGMENTS;
+  if (index < 0) index += TOTAL_SEGMENTS;
+  return segments[index];
+}
+
+// -----------------------------------------------------------------
+// SPRITE DRAWING (REALISTIC RETRO PALM, CACTUS, SHRUB)
+// -----------------------------------------------------------------
+function drawPalmTree(ctx, x, y, scale) {
+  let h = 480 * scale;
+  ctx.save();
+  ctx.translate(x, y);
+
+  // Batang Cokelat Melengkung Bertekstur
+  ctx.strokeStyle = '#78350f';
+  ctx.lineWidth = Math.max(4, 18 * scale);
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.quadraticCurveTo(30 * scale, -h * 0.5, 10 * scale, -h + (20 * scale));
+  ctx.stroke();
+
+  ctx.strokeStyle = '#b45309';
+  ctx.lineWidth = Math.max(2, 7 * scale);
+  ctx.beginPath();
+  ctx.moveTo(2 * scale, 0);
+  ctx.quadraticCurveTo(32 * scale, -h * 0.5, 12 * scale, -h + (20 * scale));
+  ctx.stroke();
+
+  // Dahan Daun Hijau Berlapis (Palm Fronds)
+  let leafX = 10 * scale;
+  let leafY = -h + (20 * scale);
+  ctx.translate(leafX, leafY);
+
+  const fronds = [
+    { angle: -0.2, len: 1.1, curve: -0.5 },
+    { angle: -0.7, len: 1.0, curve: -0.6 },
+    { angle: -1.3, len: 0.9, curve: -0.4 },
+    { angle: 0.3,  len: 1.1, curve: 0.5 },
+    { angle: 0.8,  len: 1.0, curve: 0.6 },
+    { angle: 1.4,  len: 0.9, curve: 0.4 },
+    { angle: -2.0, len: 0.8, curve: -0.3 },
+    { angle: 2.1,  len: 0.8, curve: 0.3 }
+  ];
+
+  for (let f of fronds) {
+    ctx.save();
+    ctx.rotate(f.angle);
+    let flen = 160 * scale * f.len;
+    
+    ctx.fillStyle = '#15803d';
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(flen * 0.5, f.curve * 40 * scale, flen, 30 * scale);
+    ctx.quadraticCurveTo(flen * 0.5, (f.curve * 40 + 25) * scale, 0, 0);
+    ctx.fill();
+
+    ctx.fillStyle = '#22c55e';
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(flen * 0.5, f.curve * 35 * scale, flen, 25 * scale);
+    ctx.quadraticCurveTo(flen * 0.5, (f.curve * 35 + 12) * scale, 0, 0);
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  ctx.restore();
+}
+
+// C. Vegetasi Pendukung - Kaktus Saguaro
+function drawCactus(ctx, x, y, scale) {
+  let w = 160 * scale;
+  let h = 240 * scale;
+  ctx.save();
+  ctx.translate(x, y - h);
+
+  ctx.fillStyle = '#16a34a';
+  
+  // Batang Utama
+  ctx.fillRect(-w * 0.1, 0, w * 0.2, h);
+  ctx.beginPath();
+  ctx.arc(0, 0, w * 0.1, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Cabang Kiri
+  ctx.fillRect(-w * 0.35, h * 0.35, w * 0.25, h * 0.12);
+  ctx.fillRect(-w * 0.35, h * 0.15, w * 0.12, h * 0.28);
+  ctx.beginPath();
+  ctx.arc(-w * 0.29, h * 0.15, w * 0.06, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Cabang Kanan
+  ctx.fillRect(w * 0.1, h * 0.45, w * 0.25, h * 0.12);
+  ctx.fillRect(w * 0.23, h * 0.22, w * 0.12, h * 0.30);
+  ctx.beginPath();
+  ctx.arc(w * 0.29, h * 0.22, w * 0.06, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+// C. Vegetasi Pendukung - Semak Pasir (Desert Shrub)
+function drawShrub(ctx, x, y, scale) {
+  let w = 180 * scale;
+  let h = 90 * scale;
+  ctx.save();
+  ctx.translate(x, y - h);
+
+  ctx.fillStyle = '#65a30d';
+  ctx.beginPath();
+  ctx.arc(0, h * 0.5, w * 0.32, 0, Math.PI * 2);
+  ctx.arc(-w * 0.22, h * 0.6, w * 0.24, 0, Math.PI * 2);
+  ctx.arc(w * 0.22, h * 0.6, w * 0.24, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#84cc16';
+  ctx.beginPath();
+  ctx.arc(-w * 0.05, h * 0.4, w * 0.18, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function drawBillboard(ctx, x, y, scale, text) {
+  let w = 400 * scale;
+  let h = 200 * scale;
+  ctx.save();
+  ctx.translate(x, y - h);
+  ctx.fillStyle = '#020617';
+  ctx.strokeStyle = '#ec4899';
+  ctx.lineWidth = Math.max(2, 6 * scale);
+  ctx.fillRect(-w / 2, 0, w, h);
+  ctx.strokeRect(-w / 2, 0, w, h);
+
+  ctx.fillStyle = '#38bdf8';
+  ctx.font = 'bold ' + Math.max(10, Math.floor(36 * scale)) + 'px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, 0, h / 2);
+  ctx.restore();
+}
+
+function drawAICar(ctx, x, y, scale, color) {
+  let w = 240 * scale;
+  let h = 120 * scale;
+  ctx.save();
+  ctx.translate(x, y - h);
+  ctx.fillStyle = color;
+  ctx.fillRect(-w / 2, 0, w, h * 0.6);
+  ctx.fillStyle = '#000';
+  ctx.fillRect(-w * 0.4, -h * 0.3, w * 0.8, h * 0.4);
+  ctx.restore();
+}
+
+// 2. MOBIL SPORT MERAH (Detail Bodi, Interior Belakang, Eksterior Belakang, & Plat Nomor 1986)
+function drawTestarossa(w, h) {
+  let carX = w / 2;
+  let carY = h - 25;
+  let bounce = Math.sin(performance.now() * 0.02) * (speed / MAX_SPEED) * 2.5;
+
+  ctx.save();
+  ctx.translate(carX, carY + bounce);
+  ctx.rotate(carTilt);
+
+  let scale = 1.1;
+
+  // 1. Bayangan Bodi
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+  ctx.beginPath();
+  ctx.ellipse(0, 8, 110 * scale, 20 * scale, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 2. Ban Belakang Lebar
+  ctx.fillStyle = '#1e1e1e';
+  ctx.fillRect(-105 * scale, -20 * scale, 28 * scale, 32 * scale);
+  ctx.fillRect(77 * scale, -20 * scale, 28 * scale, 32 * scale);
+
+  ctx.fillStyle = '#333333';
+  ctx.fillRect(-102 * scale, -18 * scale, 6 * scale, 28 * scale);
+  ctx.fillRect(96 * scale, -18 * scale, 6 * scale, 28 * scale);
+
+  // 3. Bumper Bawah & Knalpot
+  ctx.fillStyle = '#111827';
+  ctx.fillRect(-92 * scale, -12 * scale, 184 * scale, 22 * scale);
+
+  ctx.fillStyle = '#9ca3af';
+  ctx.fillRect(-70 * scale, 2 * scale, 12 * scale, 6 * scale);
+  ctx.fillRect(-54 * scale, 2 * scale, 12 * scale, 6 * scale);
+  ctx.fillRect(42 * scale, 2 * scale, 12 * scale, 6 * scale);
+  ctx.fillRect(58 * scale, 2 * scale, 12 * scale, 6 * scale);
+
+  // 4. Bodi Merah Utama (Ferrari Red)
+  ctx.fillStyle = '#dc2626';
+  ctx.beginPath();
+  ctx.moveTo(-98 * scale, -12 * scale);
+  ctx.lineTo(-92 * scale, -45 * scale);
+  ctx.lineTo(-75 * scale, -55 * scale);
+  ctx.lineTo(75 * scale, -55 * scale);
+  ctx.lineTo(92 * scale, -45 * scale);
+  ctx.lineTo(98 * scale, -12 * scale);
+  ctx.closePath();
+  ctx.fill();
+
+  // Highlight Bodi
+  ctx.fillStyle = '#ef4444';
+  ctx.beginPath();
+  ctx.moveTo(-90 * scale, -44 * scale);
+  ctx.lineTo(-73 * scale, -53 * scale);
+  ctx.lineTo(73 * scale, -53 * scale);
+  ctx.lineTo(90 * scale, -44 * scale);
+  ctx.fill();
+
+  // Spion Samping
+  ctx.fillStyle = '#dc2626';
+  ctx.fillRect(-85 * scale, -72 * scale, 14 * scale, 10 * scale);
+  ctx.fillRect(71 * scale, -72 * scale, 14 * scale, 10 * scale);
+
+  // 5. Kaca Belakang & DETAIL INTERIOR BELAKANG (Siluet Pengemudi & Penumpang Pirang)
+  ctx.fillStyle = '#b91c1c';
+  ctx.beginPath();
+  ctx.moveTo(-68 * scale, -55 * scale);
+  ctx.lineTo(-48 * scale, -88 * scale);
+  ctx.lineTo(48 * scale, -88 * scale);
+  ctx.lineTo(68 * scale, -55 * scale);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = '#0f172a';
+  ctx.beginPath();
+  ctx.moveTo(-62 * scale, -57 * scale);
+  ctx.lineTo(-44 * scale, -84 * scale);
+  ctx.lineTo(44 * scale, -84 * scale);
+  ctx.lineTo(62 * scale, -57 * scale);
+  ctx.closePath();
+  ctx.fill();
+
+  // Siluet Pengemudi (Kiri)
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(-30 * scale, -72 * scale, 18 * scale, 15 * scale);
+  ctx.fillStyle = '#fca5a5';
+  ctx.beginPath(); ctx.arc(-21 * scale, -76 * scale, 6 * scale, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#451a03';
+  ctx.beginPath(); ctx.arc(-21 * scale, -78 * scale, 6.5 * scale, Math.PI, Math.PI * 2); ctx.fill();
+
+  // Siluet Penumpang Wanita Pirang (Kanan) - Khas OutRun
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(12 * scale, -72 * scale, 18 * scale, 15 * scale);
+  ctx.fillStyle = '#fca5a5';
+  ctx.beginPath(); ctx.arc(21 * scale, -76 * scale, 6 * scale, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#facc15'; // Rambut Pirang
+  ctx.beginPath(); ctx.arc(21 * scale, -77 * scale, 8 * scale, 0, Math.PI * 2); ctx.fill();
+
+  // 6. DETAIL EKSTERIOR BELAKANG (Grille Horizontal & Lampu Rem)
+  ctx.fillStyle = '#171717';
+  ctx.fillRect(-85 * scale, -45 * scale, 170 * scale, 28 * scale);
+
+  ctx.strokeStyle = '#0a0a0a';
+  ctx.lineWidth = 2 * scale;
+  for (let i = 1; i <= 4; i++) {
+    ctx.beginPath();
+    ctx.moveTo(-85 * scale, -45 * scale + (i * 5.5 * scale));
+    ctx.lineTo(85 * scale, -45 * scale + (i * 5.5 * scale));
+    ctx.stroke();
+  }
+
+  // Lampu Rem Kiri & Kanan
+  let isBraking = keys.slower;
+  ctx.fillStyle = isBraking ? '#ff0033' : '#b91c1c';
+  ctx.shadowColor = isBraking ? '#ff0033' : 'transparent';
+  ctx.shadowBlur = isBraking ? 15 : 0;
+
+  ctx.fillRect(-80 * scale, -41 * scale, 32 * scale, 20 * scale);
+  ctx.fillRect(48 * scale, -41 * scale, 32 * scale, 20 * scale);
+
+  ctx.shadowBlur = 0;
+
+  // Plat Nomor "1986" di Tengah Bumper
+  ctx.fillStyle = '#f8fafc';
+  ctx.strokeStyle = '#334155';
+  ctx.lineWidth = 1.5 * scale;
+  ctx.fillRect(-22 * scale, -14 * scale, 44 * scale, 16 * scale);
+  ctx.strokeRect(-22 * scale, -14 * scale, 44 * scale, 16 * scale);
+
+  ctx.fillStyle = '#0f172a';
+  ctx.font = 'bold ' + Math.floor(10 * scale) + 'px "Courier New", monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('1986', 0, -6 * scale);
+
+  ctx.restore();
+}
+
+// -----------------------------------------------------------------
+// 3. ANTARMUKA PENGGUNA (HUD / HEADS-UP DISPLAY)
+// -----------------------------------------------------------------
+function drawHUD(w, h) {
+  ctx.save();
+
+  // TOP HUD
+  ctx.font = '900 22px "Impact", "Arial Black", sans-serif';
+  ctx.textBaseline = 'middle';
+
+  // TIME
+  ctx.fillStyle = '#00f0ff';
+  ctx.fillText('TIME', 25, 28);
+  ctx.fillStyle = '#ffff00';
+  let timeStr = Math.ceil(timeLeft).toString().padStart(2, '0');
+  ctx.fillText(timeStr, 88, 28);
+
+  // SCORE
+  ctx.fillStyle = '#ff00aa';
+  ctx.fillText('SCORE', 200, 28);
+  ctx.fillStyle = '#ffffff';
+  let scoreStr = score.toString().padStart(7, '0');
+  ctx.fillText(scoreStr, 285, 28);
+
+  // LAP
+  ctx.fillStyle = '#00ffcc';
+  ctx.fillText('LAP', 460, 28);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText("0'11\\"06", 515, 28);
+
+  // BOTTOM HUD
+  // Kecepatan (0 km/h) - Teks Miring Merah/Pink Bold
+  let kmh = Math.floor((speed / MAX_SPEED) * 290);
+  ctx.font = 'italic 900 32px "Impact", "Arial Black", sans-serif';
+  ctx.fillStyle = '#ff0055';
+  ctx.shadowColor = '#000000';
+  ctx.shadowBlur = 4;
+  ctx.fillText(kmh + ' km/h', 30, h - 25);
+
+  // Indikator Transmisi (HI) - Cyan
+  ctx.font = '900 26px "Impact", "Arial Black", sans-serif';
+  ctx.fillStyle = '#00ffcc';
+  ctx.fillText('HI', 220, h - 25);
+
+  // Tahapan Permainan (STAGE 3) - Kuning
+  ctx.fillStyle = '#ffff00';
+  ctx.textAlign = 'right';
+  ctx.fillText('STAGE ' + stage, w - 30, h - 25);
+
+  ctx.shadowBlur = 0;
+
+  // Screen Time Over
+  if (gameState === 'GAMEOVER') {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+    ctx.fillRect(0, 0, w, h);
+
+    ctx.fillStyle = '#ff0055';
+    ctx.font = '900 52px "Impact", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('TIME OVER', w / 2, h / 2 - 20);
+
+    ctx.font = '700 20px sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('Tekan ENTER atau R untuk Main Lagi', w / 2, h / 2 + 35);
+  }
+
+  ctx.restore();
+}
+
+// -----------------------------------------------------------------
+// UPDATE GAME LOGIC
+// -----------------------------------------------------------------
+function update(dt) {
+  if (gameState === 'GAMEOVER') {
+    updateEngineSound();
+    return;
+  }
+
+  timeLeft -= dt;
+  if (timeLeft <= 0) {
+    timeLeft = 0;
+    gameState = 'GAMEOVER';
+    speed = 0;
+    updateEngineSound();
+    return;
+  }
+
+  let playerSegment = findSegment(playerZ);
+  let speedPercent = speed / MAX_SPEED;
+
+  score += Math.floor(speedPercent * 15);
+  playerZ = (playerZ + speed * dt) % (TOTAL_SEGMENTS * SEGMENT_LENGTH);
+
+  if (keys.faster) speed += ACCEL * dt;
+  else if (keys.slower) speed += BREAKING * dt;
+  else speed += DECEL * dt;
+
+  const turnSpeed = 1.4 * dt * (0.2 + speedPercent * 0.8);
+  if (keys.left) playerXInertia = Math.max(-1.5, playerXInertia - turnSpeed * 3);
+  else if (keys.right) playerXInertia = Math.min(1.5, playerXInertia + turnSpeed * 3);
+  else playerXInertia *= 0.88;
+
+  playerX += playerXInertia * dt;
+  carTilt = carTilt * 0.85 + (playerXInertia * 0.15);
+  playerX -= (playerSegment.curve * speedPercent * 0.75 * dt);
+
+  speed = Math.max(0, Math.min(speed, MAX_SPEED));
+
+  let trackLength = TOTAL_SEGMENTS * SEGMENT_LENGTH;
+  for (let car of cars) {
+    car.z = (car.z + car.speed * dt) % trackLength;
+
+    let carSegment = findSegment(car.z);
+    if (carSegment.index === playerSegment.index) {
+      if (Math.abs(playerX - car.offset) < 0.45) {
+        speed = Math.min(speed, car.speed * 0.4);
+        playCrashSound();
+      }
+    }
+  }
+
+  updateEngineSound();
+}
+
+// -----------------------------------------------------------------
+// RENDER LOOP
+// -----------------------------------------------------------------
+function drawBackground(w, h) {
+  // Langit Biru Arcade Retro
+  let sky = ctx.createLinearGradient(0, 0, 0, h * 0.5);
+  sky.addColorStop(0, '#3a88e9');
+  sky.addColorStop(0.7, '#60a5fa');
+  sky.addColorStop(1, '#93c5fd');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, w, h * 0.5);
+
+  // Pegunungan Belakang (Layer 1)
+  ctx.fillStyle = '#475569';
+  ctx.beginPath();
+  ctx.moveTo(0, h * 0.5);
+  for (let i = 0; i <= w; i += 30) {
+    let hillHeight = Math.sin((i * 0.008) + skyOffset) * 35 + Math.cos(i * 0.015) * 20;
+    ctx.lineTo(i, (h * 0.5) - 30 - hillHeight);
+  }
+  ctx.lineTo(w, h * 0.5);
+  ctx.fill();
+
+  // Pegunungan Belakang (Layer 2)
+  ctx.fillStyle = '#334155';
+  ctx.beginPath();
+  ctx.moveTo(0, h * 0.5);
+  for (let i = 0; i <= w; i += 20) {
+    let hillHeight = Math.sin((i * 0.015) + skyOffset * 1.5) * 20 + Math.cos(i * 0.03) * 12;
+    ctx.lineTo(i, (h * 0.5) - 15 - hillHeight);
+  }
+  ctx.lineTo(w, h * 0.5);
+  ctx.fill();
+}
+
+function render() {
+  const rect = canvas.getBoundingClientRect();
+  const w = rect.width || 800;
+  const h = rect.height || 600;
+
+  ctx.clearRect(0, 0, w, h);
+  drawBackground(w, h);
+
+  let baseSegment = findSegment(playerZ);
+  let basePercent = (playerZ % SEGMENT_LENGTH) / SEGMENT_LENGTH;
+  let maxY = h; 
+  let dx = -(baseSegment.curve * basePercent);
+  let x = 0;
+  let trackLength = TOTAL_SEGMENTS * SEGMENT_LENGTH;
+  let visibleSegments = [];
+
+  let cameraY = CAMERA_HEIGHT + baseSegment.p1.world.y;
+
+  for (let n = 0; n < DRAW_DISTANCE; n++) {
+    let segIndex = (baseSegment.index + n) % TOTAL_SEGMENTS;
+    let segment = segments[segIndex];
+    let loop = Math.floor((baseSegment.index + n) / TOTAL_SEGMENTS);
+
+    project(segment.p1, (playerX * ROAD_WIDTH) - x, cameraY, playerZ - (loop * trackLength), CAMERA_DEPTH, w, h, ROAD_WIDTH);
+    project(segment.p2, (playerX * ROAD_WIDTH) - x - dx, cameraY, playerZ - (loop * trackLength), CAMERA_DEPTH, w, h, ROAD_WIDTH);
+
+    x += dx;
+    dx += segment.curve;
+
+    if (segment.p1.camera.z <= CAMERA_DEPTH) continue;
+    if (segment.p2.screen.y >= maxY) continue;
+    
+    maxY = segment.p1.screen.y;
+    visibleSegments.push(segment);
+  }
+
+  // Draw Road & Sprites
+  for (let i = visibleSegments.length - 1; i >= 0; i--) {
+    let segment = visibleSegments[i];
+    let p1 = segment.p1.screen;
+    let p2 = segment.p2.screen;
+
+    ctx.fillStyle = segment.colors.grass;
+    ctx.fillRect(0, p2.y, w, p1.y - p2.y);
+
+    drawPolygon(ctx, p1.x, p1.y, p1.w * 1.15, p2.x, p2.y, p2.w * 1.15, segment.colors.rumble);
+    drawPolygon(ctx, p1.x, p1.y, p1.w, p2.x, p2.y, p2.w, segment.colors.road);
+
+    if (segment.colors.lane !== 'transparent') {
+      drawPolygon(ctx, p1.x, p1.y, p1.w * 0.02, p2.x, p2.y, p2.w * 0.02, segment.colors.lane);
+    }
+
+    if (segment.sprites) {
+      for (let s of segment.sprites) {
+        let spriteX = p1.x + (p1.w * s.x);
+        let spriteScale = p1.w / 500;
+        if (s.type === 'palm') drawPalmTree(ctx, spriteX, p1.y, spriteScale);
+        if (s.type === 'cactus') drawCactus(ctx, spriteX, p1.y, spriteScale);
+        if (s.type === 'shrub') drawShrub(ctx, spriteX, p1.y, spriteScale);
+        if (s.type === 'billboard') drawBillboard(ctx, spriteX, p1.y, spriteScale, s.text);
+      }
+    }
+
+    for (let car of cars) {
+      let carSeg = findSegment(car.z);
+      if (carSeg.index === segment.index) {
+        let carX = p1.x + (p1.w * car.offset);
+        let carScale = p1.w / 500;
+        drawAICar(ctx, carX, p1.y, carScale, car.color);
+      }
+    }
+  }
+
+  drawTestarossa(w, h);
+  drawHUD(w, h);
+}
+
+let lastTime = performance.now();
+function gameLoop(now) {
+  let dt = Math.min(0.033, (now - lastTime) / 1000);
+  lastTime = now;
+
+  update(dt);
+  render();
+
+  requestAnimationFrame(gameLoop);
+}
+
+resizeCanvas();
+createTrack();
+requestAnimationFrame(gameLoop);
+`;
+
+    require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' }});
+    require(['vs/editor/editor.main'], function() {
+      editor = monaco.editor.create(document.getElementById('editor-container'), {
+        value: starterCode,
+        language: 'javascript',
+        theme: 'vs-dark',
+        automaticLayout: true,
+        fontSize: 13,
+        minimap: { enabled: false }
+      });
+      runCode();
+    });
+
+    function runCode() {
+      if (!editor) return;
+      const userCode = editor.getValue();
+      const iframe = document.getElementById('preview-iframe');
+
+      const iframeContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { margin: 0; padding: 0; overflow: hidden; background: #0b0f19; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; }
+            canvas { border-radius: 8px; box-shadow: 0 0 35px rgba(236, 72, 153, 0.3); border: 2px solid #334155; }
+          </style>
+        </head>
+        <body>
+          <canvas id="gameCanvas" width="800" height="600"></canvas>
+          <script>
+            try {
+              ${userCode}
+            } catch (err) {
+              document.body.innerHTML = '<pre style="color: #ef4444; padding: 15px; font-family: monospace; font-size: 13px; white-space: pre-wrap;">Runtime Error: ' + err.message + '</pre>';
+            }
+          <\/script>
+        </body>
+        </html>
+      `;
+      iframe.srcdoc = iframeContent;
+    }
+
+    document.getElementById('run-btn').addEventListener('click', runCode);
+  </script>
+</body>
+</html>

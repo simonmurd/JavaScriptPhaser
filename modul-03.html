@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Space Shooter - Galaga Edition</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Monaco Editor (VS Code Engine) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/editor/editor.main.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/loader.min.js"></script>
+
+  <style>
+    body { background-color: #0b0f19; color: #f3f4f6; }
+  </style>
+</head>
+<body class="flex flex-col h-screen overflow-hidden font-sans">
+
+  <!-- Header Bar -->
+  <header class="h-14 bg-slate-900 border-b border-slate-800 px-6 flex items-center justify-between z-10">
+    <div class="flex items-center space-x-3">
+      <span class="flex h-3 w-3 relative">
+        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+        <span class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
+      </span>
+      <h1 class="text-base font-bold text-slate-100 tracking-wide">
+        SPACE SHOOTER <span class="text-xs bg-cyan-600/30 text-cyan-400 border border-cyan-500/40 px-2 py-0.5 rounded font-mono ml-2">GALAGA EDITION</span>
+      </h1>
+    </div>
+
+    <div class="flex items-center space-x-3">
+      <button id="run-btn" class="bg-cyan-600 hover:bg-cyan-500 text-white font-semibold px-4 py-1.5 rounded-md transition-all flex items-center space-x-2 shadow-lg shadow-cyan-600/30 text-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+        </svg>
+        <span>Jalankan & Mainkan!</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Workspace Area -->
+  <main class="flex flex-1 w-full overflow-hidden">
+    
+    <!-- Code Editor Area -->
+    <section class="w-1/2 border-r border-slate-800 flex flex-col">
+      <div class="bg-slate-900/90 px-4 py-2 text-xs font-mono text-slate-400 border-b border-slate-800 flex justify-between">
+        <span>game.js</span>
+        <span class="text-slate-500">Panah / WASD = Gerak | Spasi = Tembak Laser</span>
+      </div>
+      <div id="editor-container" class="w-full flex-1"></div>
+    </section>
+
+    <!-- Game Canvas Output Area -->
+    <section class="w-1/2 flex flex-col bg-slate-950 relative">
+      <div class="bg-slate-900/90 px-4 py-2 text-xs font-mono text-slate-400 border-b border-slate-800">
+        <span>Pratinjau Live Phaser WebGL</span>
+      </div>
+      
+      <div class="flex-1 flex items-center justify-center p-4">
+        <iframe id="preview-iframe" class="w-[450px] h-[600px] border border-slate-800 rounded-lg shadow-2xl bg-black"></iframe>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    let editor;
+
+    // KODE GAME SPACE SHOOTER - GALAGA EDITION
+    const starterCode = `// GAME SPACE SHOOTER - GALAGA EDITION
+const config = {
+  type: Phaser.AUTO,
+  width: 450,
+  height: 600,
+  backgroundColor: '#030712',
+  physics: {
+    default: 'arcade',
+    arcade: {
+      gravity: { y: 0 },
+      debug: false
+    }
+  },
+  scene: { preload, create, update }
+};
+
+const game = new Phaser.Game(config);
+
+// Variabel Utama Game
+let player, shieldAura;
+let playerLasers, enemyLasers, enemyGroup, meteorGroup, powerupGroup;
+let explosionEmitter;
+let cursors, spaceKey, keyA, keyD, keyW, keyS;
+let scoreText, highText, livesText, weaponText, gameOverText;
+
+let score = 0, lives = 3, weaponLevel = 1, shieldHp = 0;
+
+// FIX: Bungkus localStorage dengan try-catch agar tidak crash di Local/Iframe
+let highScore = 0;
+try {
+  highScore = parseInt(localStorage.getItem('galaga_highscore')) || 0;
+} catch(e) {
+  console.warn('LocalStorage tidak tersedia (berjalan di iframe lokal/sandbox)');
+}
+
+let isGameOver = false;
+let isInvulnerable = false;
+let lastFired = 0;
+let fireRate = 180; // ms per tembakan
+
+let nextSpawnEnemy = 0;
+let nextSpawnMeteor = 0;
+let nextEnemyFire = 0;
+
+// Parallax Stars Layer
+let starsLayer1 = [], starsLayer2 = [], starsLayer3 = [];
+
+// Audio Synthesizer Web Audio API
+const AudioFX = {
+  ctx: null,
+  init() {
+    try {
+      if (!this.ctx) {
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (this.ctx.state === 'suspended') {
+        this.ctx.resume();
+      }
+    } catch(e) { console.warn('AudioContext gagal dimuat'); }
+  },
+  playLaser() {
+    if (!this.ctx) return;
+    let osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(880, this.ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(110, this.ctx.currentTime + 0.08);
+    gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start();
+    osc.stop(this.ctx.currentTime + 0.08);
+  },
+  playExplosion() {
+    if (!this.ctx) return;
+    try {
+      const bufferSize = this.ctx.sampleRate * 0.25;
+      const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      const output = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+      const noise = this.ctx.createBufferSource();
+      noise.buffer = buffer;
+
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(600, this.ctx.currentTime);
+      filter.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + 0.25);
+
+      const gain = this.ctx.createGain();
+      gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.25);
+
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.ctx.destination);
+      noise.start();
+      noise.stop(this.ctx.currentTime + 0.25);
+    } catch(e){}
+  },
+  playPowerup() {
+    if (!this.ctx) return;
+    const notes = [440, 554, 659, 880];
+    notes.forEach((freq, i) => {
+      let osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, this.ctx.currentTime + i * 0.05);
+      gain.gain.setValueAtTime(0.1, this.ctx.currentTime + i * 0.05);
+      gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + (i + 1) * 0.05);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(this.ctx.currentTime + i * 0.05);
+      osc.stop(this.ctx.currentTime + (i + 1) * 0.05);
+    });
+  },
+  playHit() {
+    if (!this.ctx) return;
+    let osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(160, this.ctx.currentTime);
+    osc.frequency.linearRampToValueAtTime(50, this.ctx.currentTime + 0.06);
+    gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.06);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start();
+    osc.stop(this.ctx.currentTime + 0.06);
+  }
+};
+
+function preload() {
+  let g = this.make.graphics({ x: 0, y: 0, add: false });
+
+  // Desain Grafis Aset secara Prosedural (WebGL native)
+  g.clear(); g.fillStyle(0x00f0ff); g.fillRect(14, 2, 4, 8); 
+  g.fillStyle(0xe2e8f0); g.fillRect(12, 10, 8, 16); g.fillRect(10, 16, 12, 8); 
+  g.fillStyle(0x3b82f6); g.fillRect(4, 20, 24, 6); g.fillRect(2, 24, 28, 4); 
+  g.fillStyle(0xef4444); g.fillRect(0, 22, 2, 6); g.fillRect(30, 22, 2, 6); g.fillRect(14, 0, 4, 3);
+  g.fillStyle(0xf59e0b); g.fillRect(10, 28, 4, 3); g.fillRect(18, 28, 4, 3);
+  g.generateTexture('player_ship', 32, 32);
+
+  g.clear(); g.fillStyle(0xef4444); g.fillRect(8, 2, 12, 6); g.fillRect(4, 8, 20, 8); g.fillRect(2, 16, 24, 6);
+  g.fillStyle(0x10b981); g.fillRect(8, 10, 4, 4); g.fillRect(16, 10, 4, 4);
+  g.fillStyle(0xf59e0b); g.fillRect(6, 22, 4, 5); g.fillRect(18, 22, 4, 5);
+  g.generateTexture('enemy_bug', 28, 28);
+
+  g.clear(); g.fillStyle(0xa855f7); g.fillRect(12, 0, 4, 24); g.fillRect(8, 6, 12, 12);
+  g.fillStyle(0xec4899); g.fillRect(2, 10, 24, 4); g.fillRect(0, 14, 28, 4);
+  g.fillStyle(0x38bdf8); g.fillRect(12, 8, 4, 4);
+  g.generateTexture('enemy_interceptor', 28, 28);
+
+  g.clear(); g.fillStyle(0x64748b); g.fillRect(6, 2, 20, 28); g.fillRect(2, 6, 28, 20); g.fillRect(10, 0, 12, 32);
+  g.fillStyle(0x475569); g.fillRect(8, 8, 6, 6); g.fillRect(18, 16, 8, 8); g.fillRect(10, 22, 5, 5);
+  g.generateTexture('meteor_large', 32, 32);
+
+  g.clear(); g.fillStyle(0x64748b); g.fillRect(3, 1, 12, 16); g.fillRect(1, 3, 16, 12);
+  g.fillStyle(0x475569); g.fillRect(5, 5, 4, 4); g.fillRect(10, 10, 3, 3);
+  g.generateTexture('meteor_small', 18, 18);
+
+  g.clear(); g.fillStyle(0x00f0ff); g.fillRect(1, 0, 4, 16); g.fillStyle(0xffffff); g.fillRect(2, 2, 2, 12);
+  g.generateTexture('laser_cyan', 6, 16);
+
+  g.clear(); g.fillStyle(0xfacc15); g.fillRect(1, 0, 4, 16); g.fillStyle(0xffffff); g.fillRect(2, 2, 2, 12);
+  g.generateTexture('laser_yellow', 6, 16);
+
+  g.clear(); g.fillStyle(0xef4444); g.fillRect(1, 0, 4, 14); g.fillStyle(0xffa5a5); g.fillRect(2, 2, 2, 10);
+  g.generateTexture('laser_red', 6, 14);
+
+  g.clear(); g.fillStyle(0x3b82f6); g.fillRect(2, 2, 16, 16); g.fillStyle(0x60a5fa); g.fillRect(4, 4, 12, 12);
+  g.fillStyle(0xffffff); g.fillRect(7, 5, 6, 3); g.fillRect(9, 8, 2, 7);
+  g.generateTexture('powerup_weapon', 20, 20);
+
+  g.clear(); g.fillStyle(0x10b981); g.fillRect(2, 2, 16, 16); g.fillStyle(0x34d399); g.fillRect(4, 4, 12, 12);
+  g.fillStyle(0xffffff); g.fillRect(7, 5, 6, 2); g.fillRect(6, 7, 8, 6); g.fillRect(8, 13, 4, 2);
+  g.generateTexture('powerup_shield', 20, 20);
+
+  g.clear(); g.fillStyle(0xffffff); g.fillRect(1, 1, 4, 4); g.fillStyle(0xf59e0b); g.fillRect(2, 0, 2, 6); g.fillRect(0, 2, 6, 2);
+  g.generateTexture('particle_spark', 6, 6);
+
+  g.clear(); g.lineStyle(2, 0x00f0ff, 0.8); g.strokeCircle(24, 24, 22); g.fillStyle(0x00f0ff, 0.15); g.fillCircle(24, 24, 22);
+  g.generateTexture('shield_aura', 48, 48);
+}
+
+function create() {
+  const unlockAudio = () => { AudioFX.init(); };
+  this.input.on('pointerdown', unlockAudio);
+  this.input.keyboard.on('keydown', unlockAudio);
+
+  createStarfield(this);
+
+  playerLasers = this.physics.add.group();
+  enemyLasers = this.physics.add.group();
+  enemyGroup = this.physics.add.group();
+  meteorGroup = this.physics.add.group();
+  powerupGroup = this.physics.add.group();
+
+  explosionEmitter = this.add.particles(0, 0, 'particle_spark', {
+    speed: { min: -150, max: 150 },
+    scale: { start: 1.5, end: 0 },
+    alpha: { start: 1, end: 0 },
+    lifespan: 400,
+    blendMode: 'ADD',
+    emitting: false
+  });
+
+  player = this.physics.add.sprite(225, 520, 'player_ship');
+  player.setCollideWorldBounds(true);
+
+  shieldAura = this.add.image(player.x, player.y, 'shield_aura').setVisible(false);
+
+  cursors = this.input.keyboard.createCursorKeys();
+  spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+  keyA = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+  keyD = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+  keyW = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
+  keyS = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+
+  scoreText = this.add.text(15, 15, 'SCORE\\n000000', { fontSize: '13px', color: '#38bdf8', fontFamily: 'monospace' });
+  highText = this.add.text(130, 15, 'BEST\\n' + String(highScore).padStart(6, '0'), { fontSize: '13px', color: '#facc15', fontFamily: 'monospace' });
+  livesText = this.add.text(260, 15, 'LIVES\\n  x3', { fontSize: '13px', color: '#ef4444', fontFamily: 'monospace' });
+  weaponText = this.add.text(350, 15, 'WEAPON\\n  LV1', { fontSize: '13px', color: '#34d399', fontFamily: 'monospace' });
+
+  this.physics.add.overlap(playerLasers, enemyGroup, (laser, enemy) => {
+    laser.destroy();
+    enemy.hp--;
+
+    if (enemy.hp <= 0) {
+      explosionEmitter.explode(20, enemy.x, enemy.y);
+      AudioFX.playExplosion();
+      score += enemy.scoreValue;
+      updateHUD();
+
+      if (Phaser.Math.Between(1, 100) <= 20) spawnPowerup(this, enemy.x, enemy.y);
+      enemy.destroy();
+    } else {
+      AudioFX.playHit();
+      enemy.setTint(0xffffff);
+      this.time.delayedCall(50, () => enemy.clearTint());
+    }
+  });
+
+  this.physics.add.overlap(playerLasers, meteorGroup, (laser, meteor) => {
+    laser.destroy();
+    meteor.hp--;
+
+    if (meteor.hp <= 0) {
+      explosionEmitter.explode(15, meteor.x, meteor.y);
+      AudioFX.playExplosion();
+      score += meteor.scoreValue;
+      updateHUD();
+
+      if (meteor.texture.key === 'meteor_large') {
+        for (let i = -1; i <= 1; i += 2) {
+          let sm = meteorGroup.create(meteor.x, meteor.y, 'meteor_small');
+          sm.setVelocity(i * 60, Phaser.Math.Between(100, 180));
+          sm.hp = 1;
+          sm.rotSpeed = Phaser.Math.FloatBetween(-0.05, 0.05);
+          sm.scoreValue = 30;
+        }
+      }
+      meteor.destroy();
+    } else {
+      AudioFX.playHit();
+    }
+  });
+
+  this.physics.add.overlap(player, enemyLasers, (p, laser) => { laser.destroy(); hitPlayer.call(this); });
+  this.physics.add.overlap(player, enemyGroup, (p, enemy) => { explosionEmitter.explode(22, enemy.x, enemy.y); enemy.destroy(); hitPlayer.call(this); });
+  this.physics.add.overlap(player, meteorGroup, (p, meteor) => { explosionEmitter.explode(22, meteor.x, meteor.y); meteor.destroy(); hitPlayer.call(this); });
+  
+  this.physics.add.overlap(player, powerupGroup, (p, powerup) => {
+    AudioFX.playPowerup();
+    if (powerup.type === 'weapon') {
+      if (weaponLevel < 3) weaponLevel++;
+      showPopupText(this, powerup.x, powerup.y, 'WEAPON UP!', '#38bdf8');
+    } else if (powerup.type === 'shield') {
+      shieldHp = Math.min(shieldHp + 2, 4);
+      shieldAura.setVisible(true);
+      showPopupText(this, powerup.x, powerup.y, 'SHIELD +2', '#34d399');
+    }
+    updateHUD();
+    powerup.destroy();
+  });
+}
+
+function update(time, delta) {
+  updateStarfield();
+
+  if (isGameOver) {
+    if (Phaser.Input.Keyboard.JustDown(spaceKey)) restartGame.call(this);
+    return;
+  }
+
+  const speed = 280;
+  player.setVelocity(0);
+
+  if (cursors.left.isDown || keyA.isDown) player.setVelocityX(-speed);
+  else if (cursors.right.isDown || keyD.isDown) player.setVelocityX(speed);
+
+  if (cursors.up.isDown || keyW.isDown) player.setVelocityY(-speed);
+  else if (cursors.down.isDown || keyS.isDown) player.setVelocityY(speed);
+
+  player.x = Phaser.Math.Clamp(player.x, 20, 430);
+  player.y = Phaser.Math.Clamp(player.y, 250, 570);
+  shieldAura.setPosition(player.x, player.y);
+
+  if (spaceKey.isDown) firePlayerLaser.call(this, time);
+
+  if (time > nextSpawnEnemy) {
+    nextSpawnEnemy = time + Math.max(700, 1800 - Math.floor(score / 500) * 120);
+    spawnEnemy(this);
+  }
+
+  if (time > nextSpawnMeteor) {
+    nextSpawnMeteor = time + Phaser.Math.Between(2500, 4500);
+    spawnMeteor(this);
+  }
+
+  if (time > nextEnemyFire) {
+    nextEnemyFire = time + Phaser.Math.Between(1000, 2000);
+    let activeEnemies = enemyGroup.getChildren().filter(e => e.active && e.y > 40 && e.y < 350);
+    if (activeEnemies.length > 0) {
+      let shooter = Phaser.Utils.Array.GetRandom(activeEnemies);
+      let laser = enemyLasers.create(shooter.x, shooter.y + 14, 'laser_red');
+      laser.setVelocityY(280);
+    }
+  }
+
+  playerLasers.getChildren().forEach(laser => { if (laser.y < -20) laser.destroy(); });
+  enemyLasers.getChildren().forEach(laser => { if (laser.y > 620) laser.destroy(); });
+  
+  enemyGroup.getChildren().forEach(enemy => {
+    if (enemy.y > 630) enemy.destroy();
+    else if (enemy.isSine) enemy.x = enemy.startX + Math.sin(enemy.y * 0.03) * 50;
+  });
+
+  meteorGroup.getChildren().forEach(meteor => {
+    if (meteor.y > 630) meteor.destroy();
+    else meteor.rotation += meteor.rotSpeed;
+  });
+
+  powerupGroup.getChildren().forEach(p => { if (p.y > 630) p.destroy(); });
+}
+
+function firePlayerLaser(currentTime) {
+  if (currentTime < lastFired) return;
+  lastFired = currentTime + fireRate;
+  AudioFX.playLaser();
+
+  if (weaponLevel === 1) {
+    playerLasers.create(player.x, player.y - 18, 'laser_cyan').setVelocityY(-520);
+  } else if (weaponLevel === 2) {
+    playerLasers.create(player.x - 10, player.y - 14, 'laser_cyan').setVelocityY(-540);
+    playerLasers.create(player.x + 10, player.y - 14, 'laser_cyan').setVelocityY(-540);
+  } else if (weaponLevel >= 3) {
+    playerLasers.create(player.x - 12, player.y - 10, 'laser_yellow').setVelocity(-130, -500);
+    playerLasers.create(player.x, player.y - 18, 'laser_yellow').setVelocity(0, -540);
+    playerLasers.create(player.x + 12, player.y - 10, 'laser_yellow').setVelocity(130, -500);
+  }
+}
+
+function spawnEnemy(scene) {
+  let x = Phaser.Math.Between(35, 415);
+  let isBug = Phaser.Math.Between(1, 10) <= 6;
+  let enemy = enemyGroup.create(x, -25, isBug ? 'enemy_bug' : 'enemy_interceptor');
+
+  if (isBug) {
+    enemy.hp = 2; enemy.scoreValue = 100; enemy.isSine = true; enemy.startX = x;
+    enemy.setVelocityY(Phaser.Math.Between(80, 130));
+  } else {
+    enemy.hp = 1; enemy.scoreValue = 150; enemy.isSine = false;
+    enemy.setVelocityY(Phaser.Math.Between(180, 260));
+  }
+}
+
+function spawnMeteor(scene) {
+  let x = Phaser.Math.Between(35, 415);
+  let isLarge = Phaser.Math.Between(1, 10) <= 6;
+  let meteor = meteorGroup.create(x, -30, isLarge ? 'meteor_large' : 'meteor_small');
+  meteor.hp = isLarge ? 3 : 1; meteor.scoreValue = isLarge ? 80 : 40;
+  meteor.rotSpeed = Phaser.Math.FloatBetween(-0.04, 0.04);
+  meteor.setVelocity(Phaser.Math.Between(-30, 30), Phaser.Math.Between(90, 160));
+}
+
+function spawnPowerup(scene, x, y) {
+  let type = Phaser.Math.Between(1, 10) <= 6 ? 'weapon' : 'shield';
+  let p = powerupGroup.create(x, y, type === 'weapon' ? 'powerup_weapon' : 'powerup_shield');
+  p.type = type;
+  p.setVelocityY(110);
+}
+
+function hitPlayer() {
+  if (isInvulnerable || isGameOver) return;
+
+  if (shieldHp > 0) {
+    shieldHp--;
+    AudioFX.playHit();
+    this.cameras.main.shake(100, 0.01);
+    if (shieldHp === 0) shieldAura.setVisible(false);
+    return;
+  }
+
+  lives--;
+  weaponLevel = Math.max(1, weaponLevel - 1);
+  AudioFX.playExplosion();
+  this.cameras.main.shake(250, 0.02);
+  explosionEmitter.explode(30, player.x, player.y);
+  updateHUD();
+
+  if (lives <= 0) {
+    isGameOver = true;
+    player.setVisible(false);
+    player.body.enable = false;
+    gameOverText = this.add.text(90, 250, 'GAME OVER\\n\\n[ SPASI ] Restart', { fontSize: '28px', color: '#ef4444', fontFamily: 'monospace', align: 'center', fontStyle: 'bold' });
+  } else {
+    isInvulnerable = true;
+    this.tweens.add({
+      targets: player, alpha: 0.2, duration: 100, yoyo: true, repeat: 8,
+      onComplete: () => { player.setAlpha(1); isInvulnerable = false; }
+    });
+  }
+}
+
+function updateHUD() {
+  if (score > highScore) {
+    highScore = score;
+    try {
+      localStorage.setItem('galaga_highscore', highScore);
+    } catch(e) {}
+  }
+  scoreText.setText('SCORE\\n' + String(score).padStart(6, '0'));
+  highText.setText('BEST\\n' + String(highScore).padStart(6, '0'));
+  livesText.setText('LIVES\\n  x' + lives);
+  weaponText.setText('WEAPON\\n  LV' + weaponLevel);
+}
+
+function showPopupText(scene, x, y, msg, colorHex) {
+  let txt = scene.add.text(x - 30, y - 10, msg, { fontSize: '12px', color: colorHex, fontFamily: 'monospace', fontStyle: 'bold' });
+  scene.tweens.add({ targets: txt, y: txt.y - 35, alpha: 0, duration: 800, onComplete: () => txt.destroy() });
+}
+
+function createStarfield(scene) {
+  for (let i = 0; i < 40; i++) starsLayer1.push(scene.add.rectangle(Phaser.Math.Between(0, 450), Phaser.Math.Between(0, 600), 1, 1, 0x64748b).setAlpha(0.6));
+  for (let i = 0; i < 25; i++) starsLayer2.push(scene.add.rectangle(Phaser.Math.Between(0, 450), Phaser.Math.Between(0, 600), 2, 2, 0xcbd5e1).setAlpha(0.8));
+  for (let i = 0; i < 12; i++) starsLayer3.push(scene.add.rectangle(Phaser.Math.Between(0, 450), Phaser.Math.Between(0, 600), 3, 3, 0x38bdf8));
+}
+
+function updateStarfield() {
+  starsLayer1.forEach(s => { s.y += 0.5; if (s.y > 600) { s.y = 0; s.x = Phaser.Math.Between(0, 450); } });
+  starsLayer2.forEach(s => { s.y += 1.2; if (s.y > 600) { s.y = 0; s.x = Phaser.Math.Between(0, 450); } });
+  starsLayer3.forEach(s => { s.y += 2.5; if (s.y > 600) { s.y = 0; s.x = Phaser.Math.Between(0, 450); } });
+}
+
+function restartGame() {
+  score = 0; lives = 3; weaponLevel = 1; shieldHp = 0; isGameOver = false;
+  playerLasers.clear(true, true); enemyLasers.clear(true, true);
+  enemyGroup.clear(true, true); meteorGroup.clear(true, true); powerupGroup.clear(true, true);
+  if (gameOverText) gameOverText.destroy();
+  player.setPosition(225, 520); player.setVisible(true); player.body.enable = true;
+  shieldAura.setVisible(false); updateHUD();
+}
+`;
+
+    // Initialize Monaco Editor
+    require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' }});
+    require(['vs/editor/editor.main'], function() {
+      editor = monaco.editor.create(document.getElementById('editor-container'), {
+        value: starterCode,
+        language: 'javascript',
+        theme: 'vs-dark',
+        automaticLayout: true,
+        fontSize: 13,
+        minimap: { enabled: false }
+      });
+
+      // Jalankan skrip pertama kali setelah editor selesai dimuat
+      runCode();
+    });
+
+    // FIX: Hapus async window.onload dan rubah struktur skrip iframe
+    function runCode() {
+      if (!editor) return;
+      const userCode = editor.getValue();
+      const iframe = document.getElementById('preview-iframe');
+
+      const iframeContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { margin: 0; padding: 0; overflow: hidden; background: #000; display: flex; justify-content: center; align-items: center; height: 100vh; }
+            canvas { border-radius: 6px; box-shadow: 0 0 20px rgba(6, 182, 212, 0.3); }
+          </style>
+          <!-- Menggunakan library dari jsDelivr yang lebih stabil -->
+          <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"><\/script>
+        </head>
+        <body>
+          <script>
+            // Jalankan secara sinkron tanpa terjebak race condition window.onload
+            if (typeof Phaser === 'undefined') {
+              document.body.innerHTML = '<pre style="color: #ef4444; padding: 15px; font-family: monospace; font-size: 12px; white-space: pre-wrap;">Gagal memuat Phaser 3. Periksa koneksi internet Anda.</pre>';
+            } else {
+              try {
+                ${userCode}
+              } catch (err) {
+                document.body.innerHTML = '<pre style="color: #ef4444; padding: 15px; font-family: monospace; font-size: 12px; white-space: pre-wrap;">Runtime Error: ' + err.message + '</pre>';
+              }
+            }
+          <\/script>
+        </body>
+        </html>
+      `;
+
+      iframe.srcdoc = iframeContent;
+    }
+
+    document.getElementById('run-btn').addEventListener('click', runCode);
+  </script>
+</body>
+</html>
