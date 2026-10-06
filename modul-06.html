@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Super Bomberman R - Stage 1: Solar Planet (Pro Refactor)</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Monaco Editor (VS Code Engine) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/editor/editor.main.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs/loader.min.js"></script>
+
+  <style>
+    body { background-color: #0b0f19; color: #f3f4f6; }
+  </style>
+</head>
+<body class="flex flex-col h-screen overflow-hidden font-sans">
+
+  <!-- Header Bar -->
+  <header class="h-14 bg-slate-900 border-b border-slate-800 px-6 flex items-center justify-between z-10">
+    <div class="flex items-center space-x-3">
+      <span class="flex h-3 w-3 relative">
+        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+        <span class="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+      </span>
+      <h1 class="text-base font-bold text-slate-100 tracking-wide">
+        SUPER BOMBERMAN R <span class="text-xs bg-amber-600/30 text-amber-400 border border-amber-500/40 px-2 py-0.5 rounded font-mono ml-2">PRO REFACTOR - FIXED</span>
+      </h1>
+    </div>
+
+    <div class="flex items-center space-x-3">
+      <button id="run-btn" class="bg-amber-600 hover:bg-amber-500 text-white font-semibold px-4 py-1.5 rounded-md transition-all flex items-center space-x-2 shadow-lg shadow-amber-600/30 text-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+        </svg>
+        <span>Jalankan & Mainkan!</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Workspace Area -->
+  <main class="flex flex-1 w-full overflow-hidden">
+    
+    <!-- Code Editor Area -->
+    <section class="w-1/2 border-r border-slate-800 flex flex-col">
+      <div class="bg-slate-900/90 px-4 py-2 text-xs font-mono text-slate-400 border-b border-slate-800 flex justify-between">
+        <span>game.js (OOP Scene Architecture)</span>
+        <span class="text-slate-500">Tombol Arah = Gerak | Spasi = Taruh Bom</span>
+      </div>
+      <div id="editor-container" class="w-full flex-1"></div>
+    </section>
+
+    <!-- Game Canvas Output Area -->
+    <section class="w-1/2 flex flex-col bg-slate-950 relative">
+      <div class="bg-slate-900/90 px-4 py-2 text-xs font-mono text-slate-400 border-b border-slate-800">
+        <span>Pratinjau Live (800x600 Responsif)</span>
+      </div>
+      
+      <div class="flex-1 flex items-center justify-center p-4">
+        <iframe id="preview-iframe" class="w-full h-full border border-slate-800 rounded-lg shadow-2xl bg-black"></iframe>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    let editor;
+
+    // KODE PRO REFACTOR SUPER BOMBERMAN R - STAGE 1: SOLAR PLANET
+    const starterCode = `// SUPER BOMBERMAN R - STAGE 1: SOLAR PLANET (PRO REFACTOR - FIXED)
+// Object-Oriented Architecture, Physics Overlap Optimization, World Bounds Enforced
+
+const AudioFX = {
+  ctx: null,
+  init() {
+    try {
+      if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if (this.ctx.state === 'suspended') this.ctx.resume();
+    } catch(e) { console.warn("Audio Context failed to initialize."); }
+  },
+  play(type) {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    let osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
+    
+    if (type === 'drop') {
+      osc.type = 'sine'; osc.frequency.setValueAtTime(300, t); osc.frequency.exponentialRampToValueAtTime(120, t + 0.1);
+      gain.gain.setValueAtTime(0.15, t); gain.gain.linearRampToValueAtTime(0.01, t + 0.1);
+      osc.connect(gain); gain.connect(this.ctx.destination); osc.start(); osc.stop(t + 0.1);
+    } else if (type === 'explode') {
+      const bSize = this.ctx.sampleRate * 0.3; const buffer = this.ctx.createBuffer(1, bSize, this.ctx.sampleRate);
+      const data = buffer.getChannelData(0); for (let i = 0; i < bSize; i++) data[i] = Math.random() * 2 - 1;
+      let noise = this.ctx.createBufferSource(); noise.buffer = buffer;
+      let filter = this.ctx.createBiquadFilter(); filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(600, t); filter.frequency.exponentialRampToValueAtTime(30, t + 0.3);
+      gain.gain.setValueAtTime(0.3, t); gain.gain.linearRampToValueAtTime(0.01, t + 0.3);
+      noise.connect(filter); filter.connect(gain); gain.connect(this.ctx.destination); noise.start(); noise.stop(t + 0.3);
+    } else if (type === 'powerup') {
+      osc.type = 'square'; osc.frequency.setValueAtTime(400, t); osc.frequency.linearRampToValueAtTime(800, t + 0.2);
+      gain.gain.setValueAtTime(0.1, t); gain.gain.linearRampToValueAtTime(0, t + 0.2);
+      osc.connect(gain); gain.connect(this.ctx.destination); osc.start(); osc.stop(t + 0.2);
+    }
+  }
+};
+
+class MainScene extends Phaser.Scene {
+  constructor() {
+    super({ key: 'MainScene' });
+  }
+
+  init() {
+    this.GRID_SIZE = 40;
+    this.COLS = 15;
+    this.ROWS = 11;
+    this.OFFSET_X = (800 - (this.COLS * this.GRID_SIZE)) / 2; 
+    this.OFFSET_Y = 100; 
+    
+    this.score = 0;
+    this.lives = 3;
+    this.maxBombs = 1;
+    this.activeBombs = 0;
+    this.firePower = 2;
+    this.moveSpeed = 160;
+    this.bossHp = 8;
+    
+    this.isSkullCursed = false;
+    this.isGameOver = false;
+    this.isInvulnerable = false;
+    this.lastDir = 'down';
+    
+    this.mapGrid = []; 
+    this.skullTimer = null;
+  }
+
+  preload() {
+    let g = this.make.graphics({ x: 0, y: 0, add: false });
+
+    // Procedural Sprites (Player)
+    const dirs = ['down', 'up', 'left', 'right'];
+    dirs.forEach(dir => {
+      [1, 2].forEach(frame => {
+        g.clear();
+        g.fillStyle(0x000000, 0.3); g.fillEllipse(18, 33, 20, 6);
+        g.fillStyle(0xef4444);
+        let lFootY = 25, rFootY = 25, lFootX = 10, rFootX = 20;
+        if (dir === 'down' || dir === 'up') {
+          if (frame === 1) { lFootY += 2; rFootY -= 2; } else { lFootY -= 2; rFootY += 2; }
+        } else if (dir === 'left') {
+          lFootX = 10; rFootX = 16; if (frame === 1) lFootX -= 2; else rFootX += 2;
+        } else if (dir === 'right') {
+          lFootX = 18; rFootX = 24; if (frame === 1) lFootX += 2; else rFootX -= 2;
+        }
+        g.fillRect(lFootX, lFootY, 6, 8); g.fillRect(rFootX, rFootY, 6, 8);
+        g.fillStyle(0x38bdf8); g.fillRect(12, 18, 12, 9);
+        g.fillStyle(0xffffff); g.fillCircle(18, 13, 11);
+        g.fillStyle(0x475569); g.fillRect(17, 0, 2, 4); g.fillStyle(0xef4444); g.fillCircle(18, 1, 3);
+        
+        g.fillStyle(0x0284c7);
+        if (dir === 'down') {
+          g.fillRect(11, 10, 14, 7); g.fillStyle(0x38bdf8); g.fillRect(12, 11, 12, 5);
+        } else if (dir === 'left') {
+          g.fillRect(8, 10, 11, 7); g.fillStyle(0x38bdf8); g.fillRect(8, 11, 9, 5);
+        } else if (dir === 'right') {
+          g.fillRect(17, 10, 11, 7); g.fillStyle(0x38bdf8); g.fillRect(19, 11, 9, 5);
+        }
+        g.generateTexture(\`bomber_\${dir}_\${frame}\`, 36, 36);
+      });
+    });
+
+    g.clear(); g.fillStyle(0x64748b, 0.5); g.fillCircle(4, 4, 4); g.generateTexture('dust', 8, 8);
+    g.clear(); g.fillStyle(0xef4444); g.fillCircle(16, 16, 14); g.fillStyle(0xffffff); g.fillCircle(10, 12, 4); g.fillCircle(22, 12, 4); g.generateTexture('enemy_ballom', 32, 32);
+    g.clear(); g.fillStyle(0x22c55e); g.fillTriangle(16, 2, 4, 16, 28, 16); g.fillStyle(0x15803d); g.fillRect(6, 14, 20, 14); g.generateTexture('enemy_onil', 32, 32);
+    g.clear(); g.fillStyle(0x2563eb); g.fillCircle(20, 20, 16); g.fillStyle(0xef4444); g.fillRect(4, 4, 8, 14); g.fillRect(28, 4, 8, 14); g.fillRect(4, 4, 32, 6); g.generateTexture('boss_magnet', 40, 40);
+    g.clear(); g.fillStyle(0x1e293b); g.fillRect(0, 0, 40, 40); g.fillStyle(0x0f172a); g.fillRect(2, 2, 36, 36); g.generateTexture('floor', 40, 40);
+    g.clear(); g.fillStyle(0x334155); g.fillRect(0, 0, 40, 40); g.fillStyle(0x475569); g.fillRect(4, 4, 32, 32); g.fillStyle(0x06b6d4); g.fillRect(16, 16, 8, 8); g.generateTexture('hard_block', 40, 40);
+    g.clear(); g.fillStyle(0xd97706); g.fillRect(0, 0, 40, 40); g.fillStyle(0xb45309); g.fillRect(2, 2, 36, 36); g.fillStyle(0x78350f); g.fillRect(8, 20, 24, 4); g.generateTexture('soft_block', 40, 40);
+    g.clear(); g.fillStyle(0x1e293b); g.fillCircle(18, 18, 14); g.fillStyle(0xf59e0b); g.fillRect(16, 2, 4, 6); g.generateTexture('bomb', 36, 36);
+    g.clear(); g.fillStyle(0x2563eb); g.fillCircle(18, 18, 14); g.fillStyle(0xf59e0b); g.fillRect(16, 2, 4, 6); g.fillStyle(0xef4444); g.fillCircle(18, 18, 6); g.generateTexture('bomb_magnet', 36, 36);
+    g.clear(); g.fillStyle(0xf59e0b); g.fillRect(0, 0, 40, 40); g.fillStyle(0xef4444); g.fillRect(6, 6, 28, 28); g.generateTexture('explosion', 40, 40);
+
+    ['fire', 'bomb', 'speed', 'skull'].forEach((type, i) => {
+      let colors = [0xef4444, 0x3b82f6, 0x10b981, 0xa855f7];
+      g.clear(); g.fillStyle(0x1e293b); g.fillRect(4, 4, 28, 28); g.fillStyle(colors[i]); g.fillCircle(18, 18, 10);
+      g.generateTexture('item_' + type, 36, 36);
+    });
+  }
+
+  create() {
+    const unlockAudio = () => AudioFX.init();
+    this.input.once('pointerdown', unlockAudio);
+    this.input.keyboard.once('keydown', unlockAudio);
+
+    this.physics.world.setBounds(
+      this.OFFSET_X, 
+      this.OFFSET_Y, 
+      this.COLS * this.GRID_SIZE, 
+      this.ROWS * this.GRID_SIZE
+    );
+
+    this.createHUD();
+    this.createGroups();
+    this.createMap();
+    this.createAnimations();
+    
+    this.createPlayer();
+    this.createBoss();
+    
+    // Perbaikan koordinat spawn musuh agar berada di jalur kosong
+    this.spawnEnemy(4, 0, 'enemy_ballom');
+    this.spawnEnemy(12, 1, 'enemy_onil');
+    this.spawnEnemy(1, 8, 'enemy_ballom');
+
+    this.cursors = this.input.keyboard.createCursorKeys();
+    this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+
+    this.setupCollisions();
+    this.updateHUD();
+  }
+
+  update(time, delta) {
+    if (this.isGameOver) {
+      if (Phaser.Input.Keyboard.JustDown(this.spaceKey)) this.scene.restart();
+      return;
+    }
+
+    this.handlePlayerMovement();
+    this.handleBombGhostStatus();
+    
+    if (Phaser.Input.Keyboard.JustDown(this.spaceKey)) {
+      this.dropBomb();
+    }
+
+    this.handleEnemyAI();
+    this.handleBossAI(time);
+  }
+
+  createHUD() {
+    this.add.rectangle(400, 40, 800, 80, 0x111827).setDepth(100);
+    this.add.text(20, 20, 'STAGE 1: SOLAR PLANET', { fontSize: '18px', color: '#f59e0b', fontFamily: 'monospace', fontStyle: 'bold' }).setDepth(101);
+    this.scoreText = this.add.text(20, 50, '', { fontSize: '14px', color: '#38bdf8', fontFamily: 'monospace' }).setDepth(101);
+    this.livesText = this.add.text(200, 50, '', { fontSize: '14px', color: '#ef4444', fontFamily: 'monospace' }).setDepth(101);
+    this.statsText = this.add.text(320, 50, '', { fontSize: '14px', color: '#10b981', fontFamily: 'monospace' }).setDepth(101);
+    this.bossHpText = this.add.text(600, 50, '', { fontSize: '14px', color: '#a855f7', fontFamily: 'monospace', fontStyle: 'bold' }).setDepth(101);
+    this.infoText = this.add.text(400, 300, '', { fontSize: '28px', color: '#ffffff', fontFamily: 'monospace', align: 'center' }).setOrigin(0.5).setDepth(200);
+  }
+
+  createGroups() {
+    this.hardBlocksGroup = this.physics.add.staticGroup();
+    this.softBlocksGroup = this.physics.add.staticGroup();
+    this.bombsGroup = this.physics.add.group();
+    this.explosionsGroup = this.physics.add.group();
+    this.powerupsGroup = this.physics.add.group();
+    this.enemiesGroup = this.physics.add.group();
+    this.dustGroup = this.add.group();
+  }
+
+  createMap() {
+    for (let r = 0; r < this.ROWS; r++) {
+      this.mapGrid[r] = [];
+      for (let c = 0; c < this.COLS; c++) {
+        let x = this.OFFSET_X + c * this.GRID_SIZE + this.GRID_SIZE / 2;
+        let y = this.OFFSET_Y + r * this.GRID_SIZE + this.GRID_SIZE / 2;
+        this.add.image(x, y, 'floor').setDepth(0);
+
+        if (r % 2 === 1 && c % 2 === 1) {
+          this.mapGrid[r][c] = 1;
+          this.hardBlocksGroup.create(x, y, 'hard_block').setDepth(4);
+        } else if (
+          (c < 2 && r < 2) || // Area spawn player
+          (c > this.COLS-3 && r > this.ROWS-3) || // Area spawn boss
+          (c === 4 && r === 0) || (c === 12 && r === 1) || (c === 1 && r === 8) // Safe zone spawn musuh
+        ) {
+          this.mapGrid[r][c] = 0; 
+        } else {
+          if (Math.random() < 0.65) {
+            this.mapGrid[r][c] = 2;
+            let sb = this.softBlocksGroup.create(x, y, 'soft_block');
+            sb.gridC = c; sb.gridR = r; sb.setDepth(4);
+          } else {
+            this.mapGrid[r][c] = 0;
+          }
+        }
+      }
+    }
+  }
+
+  createAnimations() {
+    ['down', 'up', 'left', 'right'].forEach(dir => {
+      if(!this.anims.exists('walk_' + dir)) {
+        this.anims.create({
+          key: 'walk_' + dir,
+          frames: [{ key: \`bomber_\${dir}_1\` }, { key: \`bomber_\${dir}_2\` }],
+          frameRate: 8, repeat: -1
+        });
+      }
+    });
+  }
+
+  createPlayer() {
+    let startX = this.OFFSET_X + this.GRID_SIZE/2;
+    let startY = this.OFFSET_Y + this.GRID_SIZE/2;
+    this.player = this.physics.add.sprite(startX, startY, 'bomber_down_1');
+    this.player.body.setSize(26, 26).setOffset(5, 5);
+    this.player.setCollideWorldBounds(true).setDepth(3);
+  }
+
+  createBoss() {
+    this.boss = this.enemiesGroup.create(
+      this.OFFSET_X + (this.COLS-1)*this.GRID_SIZE + this.GRID_SIZE/2, 
+      this.OFFSET_Y + (this.ROWS-1)*this.GRID_SIZE + this.GRID_SIZE/2, 
+      'boss_magnet'
+    );
+    this.boss.isBoss = true; 
+    this.boss.hp = this.bossHp; 
+    this.boss.isHit = false; 
+    this.boss.body.setSize(32, 32).setOffset(4, 4);
+    this.boss.nextMove = 0; 
+    this.boss.nextAttack = 0; 
+    
+    this.boss.setCollideWorldBounds(true);
+    this.boss.setBounce(1);
+    this.boss.setDepth(3);
+    
+    this.tweens.add({ targets: this.boss, scaleX: 1.1, scaleY: 1.1, yoyo: true, repeat: -1, duration: 600 });
+  }
+
+  setupCollisions() {
+    this.physics.add.collider(this.player, this.hardBlocksGroup);
+    this.physics.add.collider(this.player, this.softBlocksGroup);
+    this.physics.add.collider(this.enemiesGroup, this.hardBlocksGroup);
+    this.physics.add.collider(this.enemiesGroup, this.softBlocksGroup);
+    this.physics.add.collider(this.enemiesGroup, this.bombsGroup);
+    this.physics.add.collider(this.player, this.bombsGroup, null, (p, b) => !b.isGhost, this);
+    
+    this.physics.add.overlap(this.player, this.powerupsGroup, this.collectItem, null, this);
+    this.physics.add.overlap(this.player, this.enemiesGroup, this.hitPlayer, null, this);
+    this.physics.add.overlap(this.player, this.explosionsGroup, this.hitPlayer, null, this);
+    this.physics.add.overlap(this.explosionsGroup, this.enemiesGroup, this.hitEnemy, null, this);
+  }
+
+  handlePlayerMovement() {
+    this.player.setVelocity(0);
+    let speed = this.isSkullCursed ? this.moveSpeed * 0.5 : this.moveSpeed;
+    let isMoving = false;
+
+    if (this.cursors.left.isDown) {
+      this.player.setVelocityX(-speed); this.player.anims.play('walk_left', true); this.lastDir = 'left'; isMoving = true;
+    } else if (this.cursors.right.isDown) {
+      this.player.setVelocityX(speed); this.player.anims.play('walk_right', true); this.lastDir = 'right'; isMoving = true;
+    } else if (this.cursors.up.isDown) {
+      this.player.setVelocityY(-speed); this.player.anims.play('walk_up', true); this.lastDir = 'up'; isMoving = true;
+    } else if (this.cursors.down.isDown) {
+      this.player.setVelocityY(speed); this.player.anims.play('walk_down', true); this.lastDir = 'down'; isMoving = true;
+    } else {
+      this.player.anims.stop(); this.player.setTexture(\`bomber_\${this.lastDir}_1\`);
+    }
+
+    if (isMoving && Math.random() < 0.2) {
+      let d = this.dustGroup.create(this.player.x, this.player.y + 12, 'dust').setDepth(1);
+      this.tweens.add({ targets: d, alpha: 0, scale: 0.2, duration: 250, onComplete: () => d.destroy() });
+    }
+  }
+
+  handleBombGhostStatus() {
+    this.bombsGroup.getChildren().forEach(b => {
+      if (b.isGhost && !this.physics.overlap(this.player, b)) {
+        b.isGhost = false;
+      }
+    });
+  }
+
+  handleEnemyAI() {
+    this.enemiesGroup.getChildren().forEach(e => {
+      if (e.isBoss || !e.active || e.isDying) return;
+
+      if (Math.abs(e.body.velocity.x) < 5 && Math.abs(e.body.velocity.y) < 5) {
+        const dirs = [{x: 0, y: -90}, {x: 0, y: 90}, {x: -90, y: 0}, {x: 90, y: 0}];
+        let d = Phaser.Utils.Array.GetRandom(dirs);
+
+        let currentC = Phaser.Math.Clamp(Math.floor((e.x - this.OFFSET_X) / this.GRID_SIZE), 0, this.COLS - 1);
+        let currentR = Phaser.Math.Clamp(Math.floor((e.y - this.OFFSET_Y) / this.GRID_SIZE), 0, this.ROWS - 1);
+
+        let snapX = this.OFFSET_X + currentC * this.GRID_SIZE + this.GRID_SIZE / 2;
+        let snapY = this.OFFSET_Y + currentR * this.GRID_SIZE + this.GRID_SIZE / 2;
+
+        e.setPosition(snapX, snapY);
+        e.setVelocity(d.x, d.y);
+      }
+    });
+  }
+
+  handleBossAI(time) {
+    if (this.boss && this.boss.active) {
+      if (time > this.boss.nextMove) {
+        this.boss.nextMove = time + 1800;
+        const dirs = [{x: 0, y: -110}, {x: 0, y: 110}, {x: -110, y: 0}, {x: 110, y: 0}];
+        let d = Phaser.Utils.Array.GetRandom(dirs); 
+        this.boss.setVelocity(d.x, d.y);
+      }
+      
+      if (time > this.boss.nextAttack) {
+        this.boss.nextAttack = time + Phaser.Math.Between(3500, 5500);
+        this.dropMagnetBomb(this.boss.x, this.boss.y);
+        this.tweens.add({ targets: this.boss, angle: '+=360', duration: 400 });
+      }
+
+      this.bombsGroup.getChildren().forEach(b => {
+        if (b.isMagnet && b.active) {
+          let dist = Phaser.Math.Distance.Between(this.player.x, this.player.y, b.x, b.y);
+          if (dist < 130) {
+            let angle = Phaser.Math.Angle.Between(this.player.x, this.player.y, b.x, b.y);
+            this.player.body.velocity.x += Math.cos(angle) * 60;
+            this.player.body.velocity.y += Math.sin(angle) * 60;
+          }
+        }
+      });
+    }
+  }
+
+  dropBomb() {
+    if (this.activeBombs >= this.maxBombs) return;
+    let c = Math.floor((this.player.x - this.OFFSET_X) / this.GRID_SIZE);
+    let r = Math.floor((this.player.y - this.OFFSET_Y) / this.GRID_SIZE);
+    
+    if (c < 0 || c >= this.COLS || r < 0 || r >= this.ROWS || this.mapGrid[r][c] !== 0) return;
+
+    this.tweens.add({ targets: this.player, scaleX: 1.2, scaleY: 0.8, yoyo: true, duration: 80 });
+
+    let bx = this.OFFSET_X + c * this.GRID_SIZE + this.GRID_SIZE / 2;
+    let by = this.OFFSET_Y + r * this.GRID_SIZE + this.GRID_SIZE / 2;
+    let bomb = this.bombsGroup.create(bx, by, 'bomb');
+    bomb.setImmovable(true).body.setSize(32, 32).setOffset(2, 2);
+    bomb.gridC = c; bomb.gridR = r; bomb.isGhost = true; bomb.isMagnet = false; bomb.setDepth(2);
+    
+    this.mapGrid[r][c] = 3; 
+    this.activeBombs++; 
+    AudioFX.play('drop');
+
+    let bombPulse = this.tweens.add({ targets: bomb, scaleX: 1.15, scaleY: 1.15, yoyo: true, repeat: -1, duration: 280 });
+    this.time.delayedCall(1600, () => { if (bomb.active) { bombPulse.timeScale = 2.5; bomb.setTint(0xff0000); } });
+    bomb.timer = this.time.delayedCall(2500, () => this.triggerExplosion(bomb));
+  }
+
+  dropMagnetBomb(x, y) {
+    let c = Math.floor((x - this.OFFSET_X) / this.GRID_SIZE);
+    let r = Math.floor((y - this.OFFSET_Y) / this.GRID_SIZE);
+    if (c < 0 || c >= this.COLS || r < 0 || r >= this.ROWS || this.mapGrid[r][c] !== 0) return;
+
+    let bx = this.OFFSET_X + c * this.GRID_SIZE + this.GRID_SIZE / 2;
+    let by = this.OFFSET_Y + r * this.GRID_SIZE + this.GRID_SIZE / 2;
+    let bomb = this.bombsGroup.create(bx, by, 'bomb_magnet');
+    bomb.setImmovable(true).body.setSize(32, 32).setOffset(2, 2);
+    bomb.gridC = c; bomb.gridR = r; bomb.isGhost = false; bomb.isMagnet = true; bomb.setDepth(2);
+    
+    this.mapGrid[r][c] = 3; 
+    AudioFX.play('drop');
+    
+    this.tweens.add({ targets: bomb, angle: 360, repeat: -1, duration: 500 });
+    bomb.timer = this.time.delayedCall(3000, () => this.triggerExplosion(bomb, true));
+  }
+
+  triggerExplosion(bomb, isBossBomb = false) {
+    if (!bomb || !bomb.active) return;
+    let c = bomb.gridC; let r = bomb.gridR; let pwr = isBossBomb ? 3 : this.firePower;
+    
+    bomb.destroy();
+    this.mapGrid[r][c] = 0;
+    if (!isBossBomb) this.activeBombs = Math.max(0, this.activeBombs - 1);
+    AudioFX.play('explode');
+
+    this.createExplosionTile(c, r);
+
+    const dirs = [[0,-1], [0,1], [-1,0], [1,0]];
+    dirs.forEach(d => {
+      for (let i = 1; i <= pwr; i++) {
+        let nc = c + d[0] * i; let nr = r + d[1] * i;
+        if (nc < 0 || nc >= this.COLS || nr < 0 || nr >= this.ROWS) break;
+        let tile = this.mapGrid[nr][nc];
+
+        if (tile === 1) break; 
+        
+        if (tile === 2) { 
+          this.destroySoftBlock(nc, nr);
+          this.createExplosionTile(nc, nr);
+          break;
+        }
+        
+        if (tile === 3) { 
+          this.createExplosionTile(nc, nr);
+          this.bombsGroup.getChildren().forEach(b => {
+            if (b.gridC === nc && b.gridR === nr && b.active) {
+              if (b.timer) b.timer.remove();
+              this.triggerExplosion(b, b.isMagnet);
+            }
+          });
+          break;
+        }
+        
+        this.createExplosionTile(nc, nr); 
+      }
+    });
+  }
+
+  createExplosionTile(c, r) {
+    let x = this.OFFSET_X + c * this.GRID_SIZE + this.GRID_SIZE / 2;
+    let y = this.OFFSET_Y + r * this.GRID_SIZE + this.GRID_SIZE / 2;
+    let exp = this.explosionsGroup.create(x, y, 'explosion');
+    exp.body.setSize(36, 36); exp.setDepth(5);
+    
+    this.tweens.add({ targets: exp, alpha: 0, duration: 300, onComplete: () => exp.destroy() });
+  }
+
+  // Perbaikan method pencarian & penghapusan soft block tanpa perulangan bermasalah
+  destroySoftBlock(c, r) {
+    this.mapGrid[r][c] = 0; 
+    this.score += 50; 
+    this.updateHUD();
+    
+    const sb = this.softBlocksGroup.getChildren().find(block => block.gridC === c && block.gridR === r);
+    if (sb) {
+      if (Phaser.Math.Between(1, 100) <= 35) {
+        let types = ['fire', 'bomb', 'speed', 'skull'];
+        let chosen = Phaser.Utils.Array.GetRandom(types);
+        let p = this.powerupsGroup.create(sb.x, sb.y, 'item_' + chosen);
+        p.type = chosen; p.body.setSize(28, 28).setOffset(4, 4).setDepth(1);
+        this.tweens.add({ targets: p, y: '-=4', yoyo: true, repeat: -1, duration: 800 });
+      }
+      sb.destroy();
+    }
+  }
+
+  spawnEnemy(c, r, key) {
+    let x = this.OFFSET_X + c * this.GRID_SIZE + this.GRID_SIZE / 2;
+    let y = this.OFFSET_Y + r * this.GRID_SIZE + this.GRID_SIZE / 2;
+    let enemy = this.enemiesGroup.create(x, y, key);
+    
+    enemy.setCollideWorldBounds(true);
+    enemy.body.setSize(26, 26).setOffset(3, 3);
+    enemy.setVelocity(0, 90).setDepth(3);
+
+    if (key === 'enemy_ballom') {
+      this.tweens.add({ targets: enemy, scaleX: 1.1, scaleY: 0.9, yoyo: true, repeat: -1, duration: 400 });
+    } else if (key === 'enemy_onil') {
+      this.tweens.add({ targets: enemy, angle: { from: -15, to: 15 }, yoyo: true, repeat: -1, duration: 180 });
+    }
+  }
+
+  hitEnemy(explosion, enemy) {
+    if (enemy.isDying) return;
+
+    if (enemy.isBoss) {
+      if (enemy.isHit) return;
+      enemy.isHit = true;
+      enemy.hp--; 
+      this.updateHUD();
+      enemy.setTint(0xff0000); 
+      
+      this.time.delayedCall(300, () => {
+        if (enemy.active) { enemy.clearTint(); enemy.isHit = false; }
+      });
+      
+      if (enemy.hp <= 0) {
+        this.score += 2000; enemy.destroy(); this.updateHUD(); this.isGameOver = true;
+        this.infoText.setText('STAGE CLEAR!\\nMagnet Bomber Defeated!\\n\\n[SPACE] TO REPLAY').setColor('#facc15');
+      }
+    } else {
+      enemy.isDying = true;
+      if (enemy.body) enemy.body.enable = false;
+      this.score += 200; this.updateHUD();
+
+      this.tweens.add({
+        targets: enemy, alpha: 0, scaleX: 0, scaleY: 0, duration: 200,
+        onComplete: () => enemy.destroy()
+      });
+    }
+  }
+
+  collectItem(player, item) {
+    AudioFX.play('powerup');
+    if (item.type === 'fire') this.firePower++;
+    else if (item.type === 'bomb') this.maxBombs++;
+    else if (item.type === 'speed') this.moveSpeed = Math.min(260, this.moveSpeed + 20);
+    else if (item.type === 'skull') {
+      this.isSkullCursed = true; 
+      if (this.skullTimer) this.skullTimer.remove();
+      this.skullTimer = this.time.delayedCall(5000, () => this.isSkullCursed = false);
+      player.setTint(0xa855f7); 
+      this.time.delayedCall(5000, () => player.clearTint());
+    }
+    this.updateHUD(); 
+    item.destroy();
+  }
+
+  hitPlayer() {
+    if (this.isInvulnerable || this.isGameOver) return;
+    this.lives--; 
+    this.updateHUD(); 
+    AudioFX.play('explode');
+
+    if (this.lives <= 0) {
+      this.isGameOver = true;
+      this.tweens.add({
+        targets: this.player, angle: 720, scaleX: 0, scaleY: 0, duration: 800,
+        onComplete: () => {
+          this.player.setVisible(false);
+          this.infoText.setText('GAME OVER\\n\\n[SPACE] TO RESTART').setColor('#ef4444');
+        }
+      });
+    } else {
+      this.isInvulnerable = true;
+      this.player.x = this.OFFSET_X + this.GRID_SIZE/2;
+      this.player.y = this.OFFSET_Y + this.GRID_SIZE/2;
+      this.tweens.add({ 
+        targets: this.player, alpha: 0.2, duration: 120, yoyo: true, repeat: 9, 
+        onComplete: () => { this.player.setAlpha(1); this.isInvulnerable = false; } 
+      });
+    }
+  }
+
+  updateHUD() {
+    this.scoreText.setText('SCORE: ' + String(this.score).padStart(5, '0'));
+    this.livesText.setText('LIVES: ' + this.lives);
+    this.statsText.setText(\`BOMB: \${this.maxBombs} | FIRE: \${this.firePower} | SPD: \${this.moveSpeed}\`);
+    if (this.boss && this.boss.active) {
+      this.bossHpText.setText('MAGNET HP: ' + this.boss.hp);
+    } else {
+      this.bossHpText.setText('MAGNET HP: 0');
+    }
+  }
+}
+
+const config = {
+  type: Phaser.AUTO,
+  width: 800,
+  height: 600,
+  backgroundColor: '#0a0f1d',
+  physics: {
+    default: 'arcade',
+    arcade: { gravity: { y: 0 }, debug: false }
+  },
+  scene: [MainScene]
+};
+
+const game = new Phaser.Game(config);
+`;
+
+    // Inisialisasi Monaco Editor
+    require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.38.0/min/vs' }});
+    require(['vs/editor/editor.main'], function() {
+      editor = monaco.editor.create(document.getElementById('editor-container'), {
+        value: starterCode,
+        language: 'javascript',
+        theme: 'vs-dark',
+        automaticLayout: true,
+        fontSize: 13,
+        minimap: { enabled: false }
+      });
+
+      runCode();
+    });
+
+    function runCode() {
+      if (!editor) return;
+      const userCode = editor.getValue();
+      const iframe = document.getElementById('preview-iframe');
+
+      const iframeContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { margin: 0; padding: 0; overflow: hidden; background: #000; display: flex; justify-content: center; align-items: center; height: 100vh; }
+            canvas { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 6px; box-shadow: 0 0 20px rgba(245, 158, 11, 0.3); }
+          </style>
+          <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"><\/script>
+        </head>
+        <body>
+          <script>
+            if (typeof Phaser === 'undefined') {
+              document.body.innerHTML = '<pre style="color: #ef4444; padding: 15px; font-family: monospace; font-size: 12px; white-space: pre-wrap;">Gagal memuat Phaser 3. Periksa koneksi internet Anda.</pre>';
+            } else {
+              try {
+                ${userCode}
+              } catch (err) {
+                document.body.innerHTML = '<pre style="color: #ef4444; padding: 15px; font-family: monospace; font-size: 12px; white-space: pre-wrap;">Runtime Error: ' + err.message + '</pre>';
+              }
+            }
+          <\/script>
+        </body>
+        </html>
+      `;
+
+      iframe.srcdoc = iframeContent;
+    }
+
+    document.getElementById('run-btn').addEventListener('click', runCode);
+  </script>
+</body>
+</html>
