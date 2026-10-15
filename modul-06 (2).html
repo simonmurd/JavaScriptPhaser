@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Super Bomberman 90s Retro Edition - Modul 06</title>
+  <meta name="description" content="Modul 06: Game Bomberman klasik era 90-an dalam 3 file utama (modul-06.html / index.html, modul-06.css, modul-06.js).">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- External Stylesheet (File 2 dari 3: modul-06.css) -->
+  <link rel="stylesheet" href="./modul-06.css">
+</head>
+<body class="flex flex-col h-screen overflow-hidden m-0 p-0">
+
+  <!-- Header Bar -->
+  <header class="h-14 bg-slate-900 border-b border-slate-800 px-4 sm:px-6 flex items-center justify-between z-20 shrink-0">
+    <div class="flex items-center space-x-3">
+      <span class="flex h-3 w-3 relative">
+        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+        <span class="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+      </span>
+      <h1 class="text-sm sm:text-base font-bold text-slate-100 tracking-wide flex items-center">
+        SUPER BOMBERMAN R <span class="text-[10px] sm:text-xs bg-amber-600/30 text-amber-400 border border-amber-500/40 px-2 py-0.5 rounded font-mono ml-2">MODUL-06 FIXED</span>
+      </h1>
+    </div>
+
+    <div class="flex items-center space-x-2 sm:space-x-3">
+      <span id="gamepad-badge" class="hidden lg:flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-950/80 px-2.5 py-1 rounded border border-emerald-800 font-mono">
+        🎮 <span id="gamepad-name">Gamepad Terhubung</span>
+      </span>
+
+      <button id="crt-btn" class="flex items-center space-x-1.5 px-2.5 py-1 rounded text-xs font-mono border transition-all bg-cyan-950 text-cyan-300 border-cyan-700" title="Toggle Efek CRT 90s">
+        📺 <span class="hidden sm:inline">CRT ON</span>
+      </button>
+
+      <button id="audio-btn" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-emerald-400 rounded border border-slate-700 transition-colors" title="Toggle Audio 8-bit">
+        🔊
+      </button>
+
+      <div class="flex bg-slate-800 p-0.5 rounded border border-slate-700 text-xs font-mono">
+        <button id="btn-view-split" class="px-2.5 py-1 rounded bg-amber-600 text-white font-semibold transition-all">
+          Bagi Dua
+        </button>
+        <button id="btn-view-game" class="px-2.5 py-1 rounded text-slate-400 hover:text-white transition-all">
+          Game
+        </button>
+      </div>
+
+      <button id="run-btn" class="bg-amber-600 hover:bg-amber-500 active:scale-95 text-white font-semibold px-3 sm:px-4 py-1.5 rounded-md transition-all flex items-center space-x-1.5 shadow-lg shadow-amber-600/30 text-xs sm:text-sm cursor-pointer">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+        </svg>
+        <span>Jalankan & Mainkan!</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Workspace Area (Split Screen 50/50) -->
+  <main class="flex flex-1 w-full overflow-hidden">
+    
+    <!-- Code Editor Area (Left Pane - 50%) -->
+    <section id="editor-section" class="w-1/2 border-r border-slate-800 flex flex-col bg-[#0b0f19] font-mono text-xs">
+      <div class="h-9 bg-slate-900/90 px-4 flex items-center justify-between border-b border-slate-800 shrink-0 text-slate-400 select-none">
+        <div class="flex items-center space-x-2">
+          <span class="text-amber-500 font-bold">&lt;/&gt;</span>
+          <span class="font-semibold text-slate-200">modul-06.js</span>
+          <span class="text-[10px] text-slate-500 hidden sm:inline">(OOP Scene Architecture & Config)</span>
+        </div>
+        <div class="flex items-center space-x-3 text-[11px]">
+          <span class="text-slate-500 hidden md:inline">Tombol Arah = Gerak | Spasi = Taruh Bom</span>
+          <button id="copy-btn" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors">
+            Salin
+          </button>
+          <button id="reset-code-btn" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors">
+            Reset
+          </button>
+        </div>
+      </div>
+
+      <div class="h-8 bg-slate-950/80 px-4 flex items-center justify-between border-b border-slate-800/80 shrink-0 text-[11px] select-none">
+        <div class="flex items-center space-x-2 text-slate-400">
+          <span class="text-amber-400">★</span>
+          <span>Preset Level:</span>
+          <select id="preset-select" class="bg-slate-900 border border-slate-700 rounded px-2 py-0.5 text-amber-300 focus:outline-none focus:border-amber-500 text-[11px]">
+            <option value="stage1">Stage 1: Solar Planet (Normal)</option>
+            <option value="stage2">Stage 2: Cyber Factory (Fast)</option>
+            <option value="stage3">Stage 3: Magma Core (Hard)</option>
+            <option value="stage4">Stage 4: Magnet Boss Arena (12 HP)</option>
+            <option value="turbo">Chaos Mania (Turbo Speed & 5 Bombs)</option>
+          </select>
+        </div>
+        <span class="text-[10px] text-emerald-400">● Live Sync Ready</span>
+      </div>
+
+      <div class="flex-1 relative flex overflow-hidden bg-[#0d1117]">
+        <div id="line-numbers" class="w-12 py-3 bg-[#090d16] border-r border-slate-800 text-slate-600 select-none text-right pr-3 overflow-hidden font-code leading-5 text-[11px]">
+          1
+        </div>
+        <textarea id="code-textarea" spellcheck="false" class="flex-1 h-full p-3 bg-transparent text-slate-200 font-code text-[11px] leading-5 resize-none focus:outline-none focus:ring-0 whitespace-pre overflow-auto"></textarea>
+      </div>
+
+      <div class="h-6 bg-slate-900 border-t border-slate-800 px-4 flex items-center justify-between text-[10px] text-slate-500 select-none">
+        <span id="line-count-label">JavaScript Config • 52 Baris</span>
+        <span>Ubah parameter lalu klik [Jalankan & Mainkan!]</span>
+      </div>
+    </section>
+
+    <!-- Game Canvas Output Area (Right Pane - 50%) -->
+    <section id="game-section" class="w-1/2 flex flex-col bg-slate-950 relative h-full overflow-hidden">
+      <div class="bg-slate-900/90 px-4 py-2 text-xs font-mono text-slate-400 border-b border-slate-800 flex items-center justify-between shrink-0 select-none">
+        <span class="font-semibold text-slate-300">Pratinjau Live (800x600 Responsif)</span>
+        <div class="flex items-center space-x-3 text-[11px]">
+          <span id="hud-stage-badge" class="text-amber-400 font-pixel text-[10px]">STAGE 1</span>
+          <button id="toggle-menu-btn" class="text-cyan-400 hover:underline cursor-pointer">
+            ☰ Menu Utama
+          </button>
+        </div>
+      </div>
+
+      <div class="flex-1 flex flex-col items-center justify-center p-2 sm:p-3 relative overflow-hidden bg-black">
+        
+        <!-- Arcade HUD -->
+        <div id="arcade-hud" class="w-full max-w-[800px] bg-slate-900 border-b-4 border-slate-800 p-2 text-xs font-pixel select-none shadow-xl shrink-0">
+          <div class="grid grid-cols-4 sm:grid-cols-6 gap-2 items-center text-center">
+            <div class="bg-slate-950 p-1.5 rounded border border-slate-800">
+              <div class="text-[9px] text-slate-400">SCORE</div>
+              <div id="hud-score" class="text-amber-400 font-bold tracking-wider">000000</div>
+            </div>
+            <div class="bg-slate-950 p-1.5 rounded border border-slate-800">
+              <div class="text-[9px] text-slate-400">WAKTU</div>
+              <div id="hud-time" class="font-bold text-cyan-400">180s</div>
+            </div>
+            <div class="bg-slate-950 p-1.5 rounded border border-slate-800">
+              <div class="text-[9px] text-slate-400">NYAWA</div>
+              <div id="hud-lives" class="text-red-400 font-bold">♥ x3</div>
+            </div>
+            <div class="bg-slate-950 p-1.5 rounded border border-slate-800">
+              <div class="text-[9px] text-slate-400">BOM</div>
+              <div id="hud-bombs" class="text-blue-400 font-bold">0/1</div>
+            </div>
+            <div class="bg-slate-950 p-1.5 rounded border border-slate-800">
+              <div class="text-[9px] text-slate-400">API</div>
+              <div id="hud-fire" class="text-orange-400 font-bold">2</div>
+            </div>
+            <div class="bg-slate-950 p-1.5 rounded border border-slate-800">
+              <div class="text-[9px] text-slate-400">SPEED</div>
+              <div id="hud-speed" class="text-emerald-400 font-bold">160</div>
+            </div>
+          </div>
+          <!-- Boss bar -->
+          <div id="hud-boss-container" class="hidden mt-2 bg-slate-950 p-1.5 rounded border border-purple-900/60 flex items-center gap-2">
+            <span class="text-[9px] text-purple-400 font-bold whitespace-nowrap">MAGNET BOMBER:</span>
+            <div class="flex-1 bg-slate-800 h-3 rounded overflow-hidden border border-slate-700">
+              <div id="hud-boss-bar" class="bg-gradient-to-r from-red-500 to-purple-500 h-full transition-all duration-200" style="width: 100%;"></div>
+            </div>
+            <span id="hud-boss-hp-text" class="text-[9px] text-slate-300 font-mono">12/12</span>
+          </div>
+        </div>
+
+        <!-- Canvas Viewport -->
+        <div class="flex-1 w-full flex items-center justify-center relative overflow-hidden my-auto">
+          <canvas id="game-canvas" width="800" height="600" class="max-w-full max-h-full object-contain rounded-md border border-slate-800 shadow-[0_0_25px_rgba(245,158,11,0.25)]"></canvas>
+          <div id="crt-overlay" class="absolute inset-0 crt-overlay crt-vignette pointer-events-none rounded-md"></div>
+
+          <!-- Modals Container -->
+          <div id="modal-container" class="absolute inset-0 pointer-events-none z-30 flex items-center justify-center"></div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- External Game Engine Script (File 3 dari 3: modul-06.js) -->
+  <script src="./modul-06.js"></script>
+</body>
+</html>
