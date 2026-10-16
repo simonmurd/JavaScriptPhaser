@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&display=swap');
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Share Tech Mono', monospace;
+    background-color: #030408;
+    color: #00f3ff;
+    overflow: hidden;
+    user-select: none;
+    width: 100vw;
+    height: 100vh;
+}
+
+.font-orbitron {
+    font-family: 'Orbitron', sans-serif;
+}
+
+canvas#gameCanvas {
+    display: block;
+    position: absolute;
+    inset: 0;
+    background: #020307;
+    z-index: 0;
+}
+
+/* Proportional, non-obtrusive HUD brackets */
+.hud-bracket-tl {
+    position: relative;
+    background: rgba(2, 6, 16, 0.5);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(0, 243, 255, 0.3);
+    border-top: 2px solid rgba(0, 243, 255, 0.7);
+    border-radius: 6px;
+    box-shadow: 0 0 10px rgba(0, 243, 255, 0.1);
+}
+
+.hud-bracket-tr {
+    position: relative;
+    background: rgba(2, 6, 16, 0.5);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(0, 243, 255, 0.3);
+    border-top: 2px solid rgba(0, 243, 255, 0.7);
+    border-radius: 6px;
+    box-shadow: 0 0 10px rgba(0, 243, 255, 0.1);
+}
+
+.hud-bracket-bl {
+    position: relative;
+    background: rgba(2, 6, 16, 0.5);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(0, 243, 255, 0.3);
+    border-bottom: 2px solid rgba(0, 243, 255, 0.7);
+    border-radius: 6px;
+    box-shadow: 0 0 10px rgba(0, 243, 255, 0.1);
+}
+
+.hud-bracket-br {
+    position: relative;
+    background: rgba(2, 6, 16, 0.5);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(0, 243, 255, 0.3);
+    border-bottom: 2px solid rgba(0, 243, 255, 0.7);
+    border-radius: 6px;
+    box-shadow: 0 0 10px rgba(0, 243, 255, 0.1);
+}
+
+.neon-cyan-glow {
+    text-shadow: 0 0 6px rgba(0, 243, 255, 0.7);
+}
+
+.neon-magenta-glow {
+    text-shadow: 0 0 6px rgba(255, 0, 128, 0.7);
+}
+
+.neon-btn {
+    transition: all 0.2s ease;
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);
+    border: 1px solid #00f3ff;
+}
+
+.neon-btn:hover {
+    box-shadow: 0 0 25px rgba(0, 243, 255, 0.9), 0 0 45px rgba(0, 243, 255, 0.6);
+    transform: scale(1.03);
+}
+
+.scanner-vignette {
+    background: radial-gradient(circle at center, transparent 65%, rgba(2, 4, 10, 0.75) 100%);
+}
