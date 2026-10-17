@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CYBER-COMMANDER // Dual-Plane IDE</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./modul-07.css">
+</head>
+<body>
+
+    <!-- App Top Navigation Bar -->
+    <header id="appHeader">
+        <div class="header-left">
+            <div class="app-logo">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-title font-orbitron">CYBER-COMMANDER</span>
+                <span class="logo-tag">DUAL-PLANE IDE</span>
+            </div>
+            <div class="header-desc">
+                <span class="badge-code">KIRI: KODE JS</span>
+                <span class="badge-divider">↔</span>
+                <span class="badge-game">KANAN: GAME TEMPURNYA</span>
+            </div>
+        </div>
+
+        <div class="header-controls">
+            <!-- Split presets -->
+            <div class="split-controls">
+                <span class="ctrl-label">Tata Letak:</span>
+                <button id="btnSplit50" class="btn-ctrl active" title="Bagi Layar Sama Rata (50:50)">50 : 50</button>
+                <button id="btnSplit3070" class="btn-ctrl" title="Perlebar Game (30:70)">30 : 70</button>
+                <button id="btnSplit7030" class="btn-ctrl" title="Perlebar Kode (70:30)">70 : 30</button>
+            </div>
+
+            <!-- Enlarge Game Menu / Dropdown -->
+            <div class="enlarge-menu-container">
+                <button id="btnEnlargeGame" class="btn-enlarge" title="Menu Memperbesar Layar Game">
+                    <span class="icon-expand">⛶</span>
+                    <span>Perbesar Game</span>
+                    <span class="chevron">▼</span>
+                </button>
+                <div id="enlargeDropdown" class="enlarge-dropdown hidden">
+                    <div class="dropdown-header">UKURAN LAYAR GAME</div>
+                    <button class="dropdown-item" data-size="50">
+                        <span class="item-icon">⚖️</span>
+                        <div class="item-text">
+                            <strong>Bagi Dua (50%)</strong>
+                            <small>Mode standar coding & bermain</small>
+                        </div>
+                    </button>
+                    <button class="dropdown-item" data-size="70">
+                        <span class="item-icon">📐</span>
+                        <div class="item-text">
+                            <strong>Game Lebih Luas (70%)</strong>
+                            <small>Area bertarung lebih lebar</small>
+                        </div>
+                    </button>
+                    <button class="dropdown-item" data-size="85">
+                        <span class="item-icon">🔍</span>
+                        <div class="item-text">
+                            <strong>Game Sangat Luas (85%)</strong>
+                            <small>Fokus simulasi dengan strip kode</small>
+                        </div>
+                    </button>
+                    <button class="dropdown-item" data-size="100">
+                        <span class="item-icon">🖥️</span>
+                        <div class="item-text">
+                            <strong>Layar Penuh (100% Game)</strong>
+                            <small>Sembunyikan editor kode sementara</small>
+                        </div>
+                    </button>
+                    <div class="dropdown-divider"></div>
+                    <button id="btnNativeFullscreen" class="dropdown-item">
+                        <span class="item-icon">📺</span>
+                        <div class="item-text">
+                            <strong>Browser Fullscreen (F11)</strong>
+                            <small>Tampilan penuh layar monitor</small>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Global Action Buttons -->
+            <button id="btnRunGlobal" class="btn-action-run font-orbitron" title="Jalankan kode JavaScript yang diedit ke Game (Ctrl + Enter)">
+                ▶ JALANKAN KODE
+            </button>
+            <button id="btnShowHelp" class="btn-icon" title="Panduan & Cheat Sheet Modifikasi">
+                ❓
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Split Workspace -->
+    <main id="workspace">
+
+        <!-- ============================================== -->
+        <!-- SISI KIRI: EDITOR KODE JAVASCRIPT (modul-07.js) -->
+        <!-- ============================================== -->
+        <section id="codePane">
+            <!-- Editor Toolbar -->
+            <div class="editor-toolbar">
+                <div class="toolbar-tab">
+                    <span class="tab-icon">JS</span>
+                    <span class="tab-name">modul-07.js</span>
+                    <span id="codeModifiedBadge" class="tab-badge">Siap Diedit</span>
+                </div>
+                <div class="toolbar-actions">
+                    <span id="syntaxStatus" class="syntax-badge ok">✓ Syntax OK</span>
+                    <button id="btnResetCode" class="btn-sm btn-subtle" title="Kembalikan ke Kode Asli Default">
+                        ↺ Reset
+                    </button>
+                    <button id="btnCopyCode" class="btn-sm btn-subtle" title="Salin Seluruh Kode">
+                        📋 Salin
+                    </button>
+                    <button id="btnRunCode" class="btn-sm btn-primary font-orbitron" title="Terapkan & Jalankan Kode ke Arena Game">
+                        ▶ Terapkan Kode
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick Preset Modifier Bar -->
+            <div class="preset-bar">
+                <span class="preset-label">⚡ PRESET CEPAT:</span>
+                <div class="preset-chips">
+                    <button class="preset-chip active" data-preset="default">Standar</button>
+                    <button class="preset-chip" data-preset="speed_demon">Kecepatan Super</button>
+                    <button class="preset-chip" data-preset="quantum">Quantum Storm</button>
+                    <button class="preset-chip" data-preset="tank">Benteng Baja</button>
+                    <button class="preset-chip" data-preset="horde">Horde Musuh</button>
+                </div>
+            </div>
+
+            <!-- Code Editor Area with Line Numbers -->
+            <div class="editor-container">
+                <div id="lineNumbers" class="line-numbers"></div>
+                <div class="code-textarea-wrap">
+                    <textarea id="codeTextarea" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="// Ketik atau modifikasi kode JavaScript di sini..."></textarea>
+                </div>
+            </div>
+
+            <!-- Terminal Drawer / Console Output -->
+            <div id="terminalDrawer">
+                <div class="terminal-header">
+                    <div class="terminal-title">
+                        <span class="terminal-icon">❯_</span>
+                        <span>TERMINAL & LOG EKSEKUSI</span>
+                        <span id="logCount" class="log-counter">0 logs</span>
+                    </div>
+                    <div class="terminal-tools">
+                        <button id="btnClearLogs" class="btn-terminal-clear">Bersihkan</button>
+                        <button id="btnToggleTerminal" class="btn-terminal-toggle">▼</button>
+                    </div>
+                </div>
+                <div id="terminalLogs"></div>
+            </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- PEMISAH LAYAR DAPAT DIGESER (SPLIT DIVIDER)   -->
+        <!-- ============================================== -->
+        <div id="splitDivider" title="Geser ke kiri / kanan untuk mengatur lebar. Klik ganda untuk reset 50:50.">
+            <div class="grip-dots">
+                <div class="grip-dot"></div>
+                <div class="grip-dot"></div>
+                <div class="grip-dot"></div>
+                <div class="grip-dot"></div>
+                <div class="grip-dot"></div>
+            </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- SISI KANAN: ARENA PERMAINAN (CYBER-COMMANDER) -->
+        <!-- ============================================== -->
+        <section id="gamePane">
+            <!-- Game Pane Header Bar -->
+            <div class="game-toolbar">
+                <div class="game-status-info">
+                    <span class="pulse-dot"></span>
+                    <span class="status-text font-orbitron">SIMULATOR COMBAT</span>
+                    <span id="gameModeBadge" class="mode-badge">RUNNING</span>
+                </div>
+
+                <div class="game-quick-tools">
+                    <!-- Quick Enlarge Menu Button on Game Header -->
+                    <div class="game-size-buttons">
+                        <span class="size-hint">Layar:</span>
+                        <button id="btnGame50" class="btn-size-chip active" title="Ukuran 50%">50%</button>
+                        <button id="btnGame70" class="btn-size-chip" title="Ukuran 70%">70%</button>
+                        <button id="btnGameMax" class="btn-size-chip highlight" title="Perbesar Maksimal (100%)">⛶ Full</button>
+                    </div>
+
+                    <button id="btnToggleMute" class="btn-game-tool" title="Bungkam / Nyalakan Suara">
+                        <span id="soundIcon">🔊</span>
+                    </button>
+                    <button id="btnRestartGame" class="btn-game-tool" title="Restart Ulang Permainan">
+                        <span>↺</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Floating Restore Button (Visible when Game is 100% Fullscreen) -->
+            <div id="floatingRestoreBar" class="floating-restore hidden">
+                <span class="floating-text">Mode Layar Penuh Game</span>
+                <button id="btnFloatingRestore" class="btn-floating font-orbitron">
+                    ◀ KEMBALI KE BAGI 2 (KODE & GAME)
+                </button>
+            </div>
+
+            <!-- Viewport & Game Canvas Container -->
+            <div id="gameContainer">
+                <!-- Vignette & Cyber Grid Background Overlay -->
+                <div class="scanner-vignette pointer-events-none"></div>
+
+                <!-- Main Game Canvas -->
+                <canvas id="gameCanvas"></canvas>
+
+                <!-- In-Game HUD -->
+                <div id="hud" class="hud-overlay hidden">
+                    <!-- Top Row HUD -->
+                    <div class="hud-top-row">
+                        <!-- Top Left: Health, Ammo, Cyber-Commander -->
+                        <div class="hud-bracket-tl hud-box-left">
+                            <div class="hud-row-metric">
+                                <span class="metric-label">Health:</span>
+                                <span id="healthSegments" class="font-mono text-cyan-400">[==========]</span>
+                                <span id="healthPercent" class="font-mono text-white">100%</span>
+                            </div>
+                            <div class="health-bar-track">
+                                <div id="healthFill" class="health-bar-fill" style="width: 100%;"></div>
+                            </div>
+                            <div class="hud-row-metric mt-1">
+                                <span class="metric-label">Ammo:</span>
+                                <span id="ammoDisplay" class="font-mono text-white">900/900</span>
+                            </div>
+                            <div class="hud-brand font-orbitron">
+                                CYBER-COMMANDER // MODUL-07
+                            </div>
+                        </div>
+
+                        <!-- Top Right: Score, Wave, Lives -->
+                        <div class="hud-bracket-tr hud-box-right text-right">
+                            <div class="hud-row-metric justify-end">
+                                <span class="metric-label">Score:</span>
+                                <span id="scoreDisplay" class="font-mono neon-cyan-glow text-white text-base">0</span>
+                            </div>
+                            <div class="hud-row-metric justify-end mt-0.5">
+                                <span class="metric-label">Wave:</span>
+                                <span id="waveDisplay" class="font-mono neon-magenta-glow text-pink-400 text-sm">01/20</span>
+                            </div>
+                            <div class="hud-row-metric justify-end mt-0.5">
+                                <span class="metric-label">Lives:</span>
+                                <span id="livesDisplay" class="font-mono text-emerald-400 font-bold">03</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Row HUD -->
+                    <div class="hud-bottom-row">
+                        <!-- Bottom Left: Weapon Status & Overheat Bar -->
+                        <div class="hud-bracket-bl hud-box-weapon">
+                            <div class="weapon-status-title font-orbitron">WEAPON STATUS</div>
+                            <div class="active-weapon-name">Active: <span id="weaponName" class="text-pink-400">Twin Plasma Cannon</span></div>
+                            <div class="hud-row-metric">
+                                <span class="metric-label">Overheat:</span>
+                                <span id="overheatSegments" class="font-mono text-cyan-400">[----------]</span>
+                                <span id="overheatPercent" class="font-mono text-slate-300">0%</span>
+                            </div>
+                            <div class="overheat-bar-track">
+                                <div id="overheatFill" class="overheat-bar-fill" style="width: 0%;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Bottom Right: Power-Up Badges & Mini-Map Radar -->
+                        <div class="hud-bottom-right-wrap">
+                            <div class="powerup-column">
+                                <span class="powerup-title font-orbitron">POWER-UP</span>
+                                <div class="powerup-badges">
+                                    <div id="badge1" class="badge-slot active">⚡</div>
+                                    <div id="badge2" class="badge-slot">▲▲</div>
+                                    <div id="badge3" class="badge-slot">🎯</div>
+                                </div>
+                            </div>
+
+                            <div class="hud-bracket-br radar-box">
+                                <div class="radar-title font-orbitron">MINI-MAP</div>
+                                <canvas id="miniMapCanvas" width="70" height="70" class="radar-canvas"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Start / Mission Briefing Screen -->
+                <div id="startScreen" class="overlay-modal">
+                    <div class="briefing-card hud-bracket-tl">
+                        <div class="glow-bg-cyan"></div>
+                        <div class="glow-bg-pink"></div>
+                        
+                        <h1 class="briefing-title font-orbitron neon-cyan-glow">
+                            CYBER-COMMANDER
+                        </h1>
+                        <p class="briefing-subtitle font-orbitron">MODUL-07 // TACTICAL FLEET</p>
+                        
+                        <div class="briefing-controls-list">
+                            <div class="ctrl-row"><span class="ctrl-name">GERAKAN:</span> <span class="ctrl-keys">W, A, S, D / PANAH</span></div>
+                            <div class="ctrl-row"><span class="ctrl-name">BIDIK & TEMBAK:</span> <span class="ctrl-keys text-pink-400">MOUSE / HOLD KLIK</span></div>
+                            <div class="ctrl-row"><span class="ctrl-name">SENJATA BERIKUTNYA:</span> <span class="ctrl-keys text-amber-400">SPACEBAR</span></div>
+                            <div class="ctrl-row"><span class="ctrl-name">TARGET:</span> <span class="ctrl-keys text-white">Drone Quadrotor & Cyber-Crates</span></div>
+                            <div class="ctrl-row"><span class="ctrl-name">KODE SEBELAH KIRI:</span> <span class="ctrl-keys text-cyan-300">Bisa langsung Anda edit & jalankan!</span></div>
+                        </div>
+
+                        <button id="startBtn" class="neon-btn btn-start font-orbitron">
+                            INITIALIZE MISSION
+                        </button>
+                        <div id="highScoreText" class="high-score-caption">RECORD SCORE: 145,900</div>
+                    </div>
+                </div>
+
+                <!-- Game Over Screen -->
+                <div id="gameOverScreen" class="overlay-modal hidden">
+                    <div class="gameover-card hud-bracket-tl">
+                        <h2 class="gameover-title font-orbitron neon-magenta-glow">VESSEL COMPROMISED</h2>
+                        <p class="gameover-sub">TACTICAL FLEET REPORT LOGGED</p>
+                        
+                        <div class="gameover-score-box">
+                            <div class="score-caption">FINAL SCORE</div>
+                            <div id="finalScore" class="final-score font-orbitron">0</div>
+                            <div id="newHighScoreNotice" class="new-high-score hidden">★ NEW HIGH SCORE RECORDED ★</div>
+                        </div>
+
+                        <button id="restartBtn" class="neon-btn btn-restart font-orbitron">
+                            RE-ENGAGE COMBAT
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Help & Cheat Sheet Modal -->
+    <div id="helpModal" class="overlay-modal hidden">
+        <div class="modal-card hud-bracket-tl">
+            <div class="modal-header">
+                <h3 class="font-orbitron neon-cyan-glow">PANDUAN & CARA MODIFIKASI KODE</h3>
+                <button id="btnCloseHelp" class="btn-close-modal">✕</button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">Aplikasi ini membagi layar menjadi 2 bagian:</p>
+                <ul class="guide-list">
+                    <li><strong>Sisi Kiri (Kode JS):</strong> Kode JavaScript yang mengontrol seluruh mekanik kapal, amunisi, kecepatan, tipe senjata, musuh, dan efek ledakan. Anda bisa mengedit nilai di teks kode secara bebas.</li>
+                    <li><strong>Sisi Kanan (Game Arena):</strong> Simulasi langsung yang merespon kode di sisi kiri. Tekan <strong>"Jalankan Kode"</strong> atau <kbd>Ctrl</kbd> + <kbd>Enter</kbd> untuk langsung menguji modifikasi Anda tanpa reload halaman.</li>
+                    <li><strong>Menu Perbesar Layar:</strong> Di pojok kanan atas terdapat tombol <em>"Perbesar Game"</em> untuk melihat game dalam tampilan 70% atau 100% layar penuh.</li>
+                    <li><strong>Preset Cepat:</strong> Coba klik tombol preset di atas editor (seperti <em>Kecepatan Super</em> atau <em>Quantum Storm</em>) untuk melihat contoh modifikasi ekstrem!</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button id="btnDismissHelp" class="neon-btn font-orbitron">MENGERTI & TUTUP</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Controller & Game Logic Script -->
+    <script src="./modul-07.js"></script>
+</body>
+</html>
