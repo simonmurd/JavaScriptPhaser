@@ -82,7 +82,7 @@
           <span>Semester Genap 2026/2027</span>
         </div>
 
-        <a href="#modul-grid" class="inline-flex items-center justify-center text-xs font-bold bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 px-4 py-2.5 rounded-xl transition-all duration-200 shadow-lg shadow-cyan-500/20">
+        <a href="#modules-grid" class="inline-flex items-center justify-center text-xs font-bold bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 px-4 py-2.5 rounded-xl transition-all duration-200 shadow-lg shadow-cyan-500/20">
           <i class="fa-solid fa-rocket mr-1.5"></i> Mulai Belajar
         </a>
       </div>
@@ -91,7 +91,6 @@
 
   <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
 
-    <!-- Hero Section -->
     <section class="mb-10">
       <div class="max-w-3xl">
         <div class="inline-flex items-center space-x-2 bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-semibold px-3 py-1 rounded-full mb-4">
@@ -116,7 +115,7 @@
           </div>
           <div>
             <h2 class="text-sm font-bold text-slate-100">Progres Pembelajaran Anda</h2>
-            <p class="text-xs text-slate-400 mt-0.5"><span id="completed-count" class="text-cyan-400 font-bold">0</span> dari 20 modul telah diselesaikan</p>
+            <p class="text-xs text-slate-400 mt-0.5"><span id="completed-count" class="text-cyan-400 font-bold">0</span> dari <span id="total-count">24</span> modul telah diselesaikan</p>
           </div>
         </div>
 
@@ -227,7 +226,6 @@
     </div>
   </div>
 
-  <!-- Footer -->
   <footer class="bg-slate-900/60 border-t border-slate-800 mt-16 py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
       <div class="flex items-center space-x-2">
@@ -241,7 +239,7 @@
   </footer>
 
   <script>
-    // Module Database (20 Modules)
+    // Module Database (24 Modules)
     const modulesData = [
       {
         id: 1,
@@ -375,6 +373,58 @@
       },
       {
         id: 11,
+        title: "CYBER-DEFENSE PROTOCOL",
+        genre: "Strategy",
+        icon: "fa-shield-halved",
+        color: "from-blue-600 to-cyan-700",
+        badge: "Sci-Fi Tower Defense",
+        description: "Pemain berperan sebagai komandan stasiun luar angkasa yang harus mempertahankan pangkalan dari gelombang serangan musuh (wave-based) dengan menempatkan berbagai jenis menara pertahanan.",
+        topics: ["Logika Penempatan Objek (Grid Snapping)", "Deteksi Jarak Tembak (Range Checking)", "Manajemen Health/Energy Pangkalan & Mini-map Radar"],
+        time: "60 Menit",
+        link: "modul-11.html",
+        locked: false
+      },
+      {
+        id: 12,
+        title: "CYBER-MAZE HACKER",
+        genre: "Platformer",
+        icon: "fa-network-wired",
+        color: "from-purple-600 to-indigo-700",
+        badge: "Dungeon Crawler",
+        description: "Karakter bergerak menjelajahi koridor labirin stasiun atau server komputer pusat untuk meretas terminal, menghindari jebakan laser, dan melawan droid keamanan.",
+        topics: ["Pembuatan Peta Labirin Prosedural (Tilemap)", "Kontrol W-A-S-D & Bidikan Arah Mouse", "Mekanik Interaksi Objek (Hacking Mini-game & Kartu Akses)"],
+        time: "55 Menit",
+        link: "modul-12.html",
+        locked: false
+      },
+      {
+        id: 13,
+        title: "ASTEROID MINER 2185",
+        genre: "Racing",
+        icon: "fa-meteor",
+        color: "from-amber-600 to-orange-700",
+        badge: "Resource Management",
+        description: "Mengendalikan kapal penambang di sabuk asteroid untuk mengumpulkan mineral berharga, menghindari hujan meteor, dan meng-upgrade komponen kapal.",
+        topics: ["Fisika Pergerakan Kapal (Inersia & Agak Licin)", "Sistem Overheat Senjata / Laser Penambang", "Panel HUD Status Bahan Bakar & Ekonomi Mini Jual/Beli"],
+        time: "50 Menit",
+        link: "modul-13.html",
+        locked: false
+      },
+      {
+        id: 14,
+        title: "ORBITAL DEFENSE SNIPER",
+        genre: "Shooter",
+        icon: "fa-crosshair",
+        color: "from-rose-600 to-red-700",
+        badge: "Stationary Snipping",
+        description: "Game bertema stationary shooting di mana pemain berada di titik tetap (di atas satelit) dan harus membidik target bergerak berkecepatan tinggi di orbit bumi.",
+        topics: ["Mekanik Bidikan Mouse Presisi Tinggi", "Efek Visual Juice (Screen Shake & Partikel Ledakan)", "Kalkulasi Reload, Batas Waktu, & Combo Score"],
+        time: "45 Menit",
+        link: "modul-14.html",
+        locked: false
+      },
+      {
+        id: 15,
         title: "MULTIPLAYER REAL-TIME WITH SOCKET.IO",
         genre: "Strategy",
         icon: "fa-network-wired",
@@ -383,11 +433,11 @@
         description: "Materi lanjutan integrasi Phaser 3 dengan Node.js & Socket.io untuk sinkronisasi posisi pemain, aksi tembak real-time, dan lobby kamar.",
         topics: ["Konfigurasi Socket.io Client & Server", "Synchronization Position & Interpolation", "Lobby & Room Management System"],
         time: "60 Menit",
-        link: "modul-11.html",
+        link: "modul-15.html",
         locked: false
       },
       {
-        id: 12,
+        id: 16,
         title: "INVENTORY & ITEM CRAFTING SYSTEM",
         genre: "Platformer",
         icon: "fa-boxes-stacked",
@@ -396,11 +446,11 @@
         description: "Pengembangan sistem inventaris drag-and-drop, slot item berbatas, serta mekanisme crafting resep berbasis state management.",
         topics: ["Drag-and-Drop Interaction UI", "Data Schema Item & Grid Inventory", "Crafting Recipe Logic Engine"],
         time: "50 Menit",
-        link: "modul-12.html",
+        link: "modul-16.html",
         locked: false
       },
       {
-        id: 13,
+        id: 17,
         title: "PROCEDURAL DUNGEON GENERATOR",
         genre: "Strategy",
         icon: "fa-dungeon",
@@ -409,11 +459,11 @@
         description: "Membuat peta labirin dan dungeon secara acak menggunakan algoritma Cellular Automata / BSP (Binary Space Partitioning) dan Tilemap.",
         topics: ["Algoritma BSP & Random Walk", "Auto-tiling & Rule-based Tilemaps", "Procedural Enemy & Loot Spawning"],
         time: "60 Menit",
-        link: "modul-13.html",
+        link: "modul-17.html",
         locked: false
       },
       {
-        id: 14,
+        id: 18,
         title: "ADVANCED SHADERS & GLSL PIPELINES",
         genre: "Cyberpunk",
         icon: "fa-wand-magic-sparkles",
@@ -422,11 +472,11 @@
         description: "Penerapan kustom WebGL Shader GLSL untuk efek visual tingkat tinggi seperti CRT retro monitor, Bloom, Distorsi Air, dan Day/Night cycle.",
         topics: ["GLSL Fragment Shader Basics", "Custom WebGL Pipeline di Phaser 3", "Post-processing Screen Effects"],
         time: "55 Menit",
-        link: "modul-14.html",
+        link: "modul-18.html",
         locked: false
       },
       {
-        id: 15,
+        id: 19,
         title: "BOSS FIGHT & BEHAVIOR TREE AI",
         genre: "Shooter",
         icon: "fa-skull",
@@ -435,11 +485,11 @@
         description: "Merancang pertarungan Boss yang kompleks dengan beberapa fase serangan menggunakan arsitektur Behavior Tree dan Finite State Machine.",
         topics: ["Behavior Trees & AI Decision Making", "Multi-Phase Boss Attacks & Patterns", "Dynamic Health Bar & Telegraphed Attacks"],
         time: "60 Menit",
-        link: "modul-15.html",
+        link: "modul-19.html",
         locked: false
       },
       {
-        id: 16,
+        id: 20,
         title: "PHYSICS RIGIDBODY & CUTTING MECHANICS",
         genre: "Platformer",
         icon: "fa-cubes",
@@ -448,11 +498,11 @@
         description: "Eksplorasi modul fisika Matter.js di Phaser 3 untuk simulasi tali ragdoll, destruksi objek, serta mekanik pemotongan bentuk bermassa.",
         topics: ["Integrasi Matter.js Engine", "Constraints, Springs, & Joints", "Physics Polygon Decomposition"],
         time: "50 Menit",
-        link: "modul-16.html",
+        link: "modul-20.html",
         locked: false
       },
       {
-        id: 17,
+        id: 21,
         title: "PROCEDURAL INFINITE RUNNER 2D",
         genre: "Platformer",
         icon: "fa-person-running",
@@ -461,11 +511,11 @@
         description: "Membangun game endless runner dengan generasi platform tak terhingga, kesulitan dinamis (adaptive difficulty), serta high-score leaderboard.",
         topics: ["Object Pooling for Memory Optimization", "Dynamic Obstacle Speed Curve", "Local Storage Highscore & Achievements"],
         time: "45 Menit",
-        link: "modul-17.html",
+        link: "modul-21.html",
         locked: false
       },
       {
-        id: 18,
+        id: 22,
         title: "MOBILE TOUCH CONTROLS & VIRTUAL JOYSTICK",
         genre: "Racing",
         icon: "fa-mobile-screen-button",
@@ -474,11 +524,11 @@
         description: "Optimisasi game untuk perangkat seluler: Touch gestures (swipe, pinch), Virtual D-Pad / Joystick, serta responsivitas layar HP.",
         topics: ["Phaser Virtual Joystick Plugin", "Multi-touch Gesture Recognition", "Mobile Aspect Ratio Scaling"],
         time: "45 Menit",
-        link: "modul-18.html",
+        link: "modul-22.html",
         locked: false
       },
       {
-        id: 19,
+        id: 23,
         title: "SYNTHESIZER AUDIO & DYNAMIC MUSIC",
         genre: "Racing",
         icon: "fa-music",
@@ -487,11 +537,11 @@
         description: "Mekanisme audio adaptif yang berubah sesuai intensitas permainan, audio 3D positional panning, serta procedural sound effects.",
         topics: ["Web Audio API & Sound Manager", "Adaptive Stems & Crossfading Music", "Positional Audio Distance Attenuation"],
         time: "50 Menit",
-        link: "modul-19.html",
+        link: "modul-23.html",
         locked: false
       },
       {
-        id: 20,
+        id: 24,
         title: "GAME DEPLOYMENT & PWA INTEGRATION",
         genre: "Strategy",
         icon: "fa-cloud-arrow-up",
@@ -500,12 +550,11 @@
         description: "Langkah memasarkan game: Mengubah game Phaser 3 menjadi Progressive Web App (PWA) offline-playable, bundling Vite, dan deployment.",
         topics: ["Vite / Webpack Build Bundling", "Service Worker & Offline Cache (PWA)", "Publishing ke Web Hosting (Vercel/Netlify)"],
         time: "55 Menit",
-        link: "modul-20.html",
+        link: "modul-24.html",
         locked: false
       }
     ];
 
-    // LocalStorage Helper
     function getCompletedModules() {
       return JSON.parse(localStorage.getItem('phaser3_lab_completed_modules') || '[]');
     }
@@ -537,6 +586,7 @@
       const percentage = Math.round((count / total) * 100);
 
       document.getElementById('completed-count').innerText = count;
+      document.getElementById('total-count').innerText = total;
       document.getElementById('progress-percent').innerText = `${percentage}%`;
       document.getElementById('progress-bar').style.width = `${percentage}%`;
     }
@@ -644,7 +694,7 @@
       const mod = modulesData.find(m => m.id === id);
       if (!mod || mod.locked) return;
 
-      document.getElementById('modal-badge').innerText = `MODUL ${mod.id < 10 ? '0' + mod.id : mod.id} - ${mod.genre.toUpperCase()}`;
+      document.getElementById('modal-badge').innerText = `MODUL ${mod.id < 10 ? '0' + mod.id : mod.id} - ${mod.genre.UPPERCASE || mod.genre.toUpperCase()}`;
       document.getElementById('modal-title').innerText = mod.title;
       document.getElementById('modal-description').innerText = mod.description;
       document.getElementById('modal-time').querySelector('span').innerText = `Estimasi: ${mod.time}`;
@@ -680,7 +730,7 @@
       content.classList.add('scale-95');
     }
 
-    // Modal listeners
+    // Modal close listeners
     document.getElementById('module-modal').addEventListener('click', (e) => {
       if (e.target.id === 'module-modal') closeModal();
     });
