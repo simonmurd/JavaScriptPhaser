@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Jewel Quest: Aztec Temple Adventure (100% Offline)</title>
+  <meta name="description" content="Jewel Quest: Aztec Temple Adventure - Game puzzle match-3 petualangan kuil Aztec 100% offline tanpa internet.">
+  <link rel="stylesheet" href="Jewel_Quest_Aztec_Temple_Adventure.css">
+</head>
+<body>
+  <!-- Ambient Audio Indicator / Header HUD -->
+  <header class="game-header">
+    <div class="header-left">
+      <div class="logo-box">
+        <span class="gold-icon">🏺</span>
+        <div class="title-group">
+          <h1>JEWEL QUEST</h1>
+          <span class="subtitle">AZTEC TEMPLE ADVENTURE • 100% OFFLINE</span>
+        </div>
+      </div>
+      <div class="level-indicator">
+        <span class="level-badge" id="levelBadge">LEVEL 1</span>
+        <span class="level-title" id="levelName">Ruang Altar Mega Berlumut (16x16)</span>
+      </div>
+    </div>
+
+    <div class="header-stats">
+      <div class="stat-pill gold-progress-pill" title="Kemajuan Ubah Lantai Jadi Emas">
+        <span class="stat-label">Lantai Emas:</span>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" id="goldProgressBar" style="width: 0%"></div>
+        </div>
+        <span class="stat-value" id="goldTileCount">0 / 256</span>
+      </div>
+
+      <div class="stat-pill">
+        <span class="stat-icon">🪙</span>
+        <span class="stat-value" id="scoreDisplay">0</span>
+      </div>
+
+      <div class="stat-pill turns-pill">
+        <span class="stat-icon">📜</span>
+        <span class="stat-label">Langkah:</span>
+        <span class="stat-value" id="movesDisplay">46</span>
+      </div>
+
+      <div class="stat-pill timer-pill">
+        <span class="stat-icon">⏳</span>
+        <span class="stat-value" id="timerDisplay">04:00</span>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button class="nav-btn" id="btnMap" title="Peta Kuil Ekspedisi">🗺️ Peta</button>
+      <button class="nav-btn" id="btnAudio" title="Suara FX On/Off">🔊 FX</button>
+      <button class="nav-btn" id="btnHelp" title="Panduan Main">❓ Bantuan</button>
+      <button class="nav-btn btn-highlight" id="btnDownloadSelf" title="Unduh 3 File Offline">💾 Simpan Offline</button>
+    </div>
+  </header>
+
+  <!-- Main Expedition Layout -->
+  <main class="expedition-layout">
+    <!-- Left Expedition Panel: Archaeological Wooden Relic Crate -->
+    <aside class="side-panel left-panel">
+      <div class="crate-box">
+        <div class="crate-header">
+          <span class="crate-title">PETI RELIK ARKEOLOGI</span>
+          <span class="crate-sub">Koleksi Artefak Maya Kuno</span>
+        </div>
+        
+        <div class="crate-interior" id="relicCrate">
+          <!-- Relic slots dynamically rendered -->
+        </div>
+
+        <div class="crate-footer">
+          <div class="objective-card">
+            <div class="obj-title">🎯 MISI KUIL:</div>
+            <div class="obj-desc" id="levelObjectiveText">Ubah seluruh 256 ubin batu kuil menjadi emas murni!</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Center Game Canvas Board -->
+    <section class="board-container" id="boardContainer">
+      <div class="canvas-wrapper">
+        <canvas id="gameCanvas"></canvas>
+      </div>
+
+      <!-- Quick Action Toolbar / Boosters -->
+      <div class="booster-toolbar">
+        <button class="booster-btn" id="boosterChisel" title="Pahat Arkeolog: Hancurkan batu atau langsung ubah jadi emas">
+          <span class="b-icon">🔨</span>
+          <span class="b-name">Pahat Arkeolog</span>
+          <span class="b-count" id="countChisel">3</span>
+        </button>
+        <button class="booster-btn" id="boosterBomb" title="Granat Matahari: Ledakkan area 3x3 jadi emas">
+          <span class="b-icon">💣</span>
+          <span class="b-name">Granat Matahari</span>
+          <span class="b-count" id="countBomb">2</span>
+        </button>
+        <button class="booster-btn" id="boosterLightning" title="Tongkat Petir: Hancurkan semua permata satu warna">
+          <span class="b-icon">⚡</span>
+          <span class="b-name">Tongkat Petir</span>
+          <span class="b-count" id="countLightning">2</span>
+        </button>
+        <button class="booster-btn" id="boosterShuffle" title="Guncang Permata: Acak susunan papan">
+          <span class="b-icon">🔄</span>
+          <span class="b-name">Acak Papan</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Right Journal / Temple Legend Panel -->
+    <aside class="side-panel right-panel">
+      <div class="journal-box">
+        <div class="journal-header">
+          <span class="journal-title">CATATAN PENJELAJAH</span>
+          <span class="journal-date">Ekspedisi 1904</span>
+        </div>
+        
+        <div class="journal-content">
+          <div class="journal-quote">
+            "Kutukan Kuil Aztec hanya sirna saat setiap ubin altar batu bertransformasi menjadi lempengan emas murni!"
+          </div>
+          
+          <div class="journal-legend">
+            <h4>Panduan Permata:</h4>
+            <ul class="legend-list">
+              <li><span class="leg-color c1"></span> Singa Matahari Aztec (Emas)</li>
+              <li><span class="leg-color c2"></span> Giok Zamrud Kolombia (Hijau)</li>
+              <li><span class="leg-color c3"></span> Safir Cabochon Oval (Biru)</li>
+              <li><span class="leg-color c4"></span> Mirah Delima Facet (Merah)</li>
+              <li><span class="leg-color c5"></span> Ametis Beludru Cushion (Ungu)</li>
+              <li><span class="leg-color c6"></span> Topaz Citrine Heksagon (Oranye)</li>
+              <li><span class="leg-color c7"></span> Berlian Putih Kemilau (Putih)</li>
+            </ul>
+          </div>
+
+          <div class="tip-card">
+            💡 <strong>Trik:</strong> Buat 4 atau 5 permata sejajar untuk memicu reaksi berantai emas kilat dan skor ganda!
+          </div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- World Map Modal -->
+  <div class="modal-overlay" id="mapModal">
+    <div class="modal-content modal-map">
+      <div class="modal-header">
+        <h2>🗺️ PETA EKSPEDISI KUIL MAYA</h2>
+        <button class="modal-close" id="closeMap">✕</button>
+      </div>
+      <p class="map-subtitle">Pilih kamar reruntuhan kuno untuk dijelajahi:</p>
+      
+      <div class="level-grid" id="levelGrid">
+        <!-- Dynamically populated -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Victory Modal -->
+  <div class="modal-overlay" id="victoryModal">
+    <div class="modal-content modal-victory">
+      <div class="victory-banner">🏆 ALTAR EMAS SEMPURNA!</div>
+      <h2 id="victoryTitle">Ruang Kuil Terselesaikan!</h2>
+      <p class="victory-desc">Seluruh lantai batu berhasil diubah menjadi emas murni!</p>
+
+      <div class="star-rating" id="victoryStars">
+        <span class="star active">★</span>
+        <span class="star active">★</span>
+        <span class="star active">★</span>
+      </div>
+
+      <div class="relic-discovery-box" id="relicDiscoveryBox">
+        <div class="relic-found-icon" id="relicFoundIcon">🏺</div>
+        <div class="relic-found-info">
+          <div class="relic-found-label">ARTEFAK LANGKA DITEMUKAN:</div>
+          <div class="relic-found-name" id="relicFoundName">Topeng Kematian Giok</div>
+          <div class="relic-found-desc" id="relicFoundDesc">Dipahat dari batu giok mulia oleh pendeta agung Palenque.</div>
+        </div>
+      </div>
+
+      <div class="score-summary">
+        <div class="score-row"><span>Skor Ekspedisi:</span><strong id="victoryFinalScore">38,500</strong></div>
+        <div class="score-row"><span>Sisa Langkah:</span><strong id="victoryRemainingMoves">14 langkah</strong></div>
+        <div class="score-row"><span>Koin Emas Diperoleh:</span><strong class="gold-text" id="victoryReward">+350 Koin</strong></div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="action-btn" id="btnNextLevel">Lanjut ke Kuil Berikutnya ➡️</button>
+        <button class="action-btn btn-secondary" id="btnReplay">Mainkan Lagi 🔄</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game Over Modal -->
+  <div class="modal-overlay" id="gameOverModal">
+    <div class="modal-content modal-gameover">
+      <div class="gameover-banner">⌛ WAKTU / LANGKAH HABIS</div>
+      <h2>Kutukan Kuil Belum Sirna</h2>
+      <p>Masih tersisa ubin batu yang belum berubah menjadi emas murni.</p>
+      <div class="gameover-stats">
+        <div>Ubin Emas: <span id="gameOverGold">180 / 256</span></div>
+        <div>Skor: <span id="gameOverScore">12,400</span></div>
+      </div>
+      <div class="modal-actions">
+        <button class="action-btn" id="btnTryAgain">Coba Lagi 🔄</button>
+        <button class="action-btn btn-secondary" id="btnGiveUpMap">Kembali ke Peta 🗺️</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Help / Instructions Modal -->
+  <div class="modal-overlay" id="helpModal">
+    <div class="modal-content modal-help">
+      <div class="modal-header">
+        <h2>📜 PANDUAN JEWEL QUEST: AZTEC TEMPLE ADVENTURE</h2>
+        <button class="modal-close" id="closeHelp">✕</button>
+      </div>
+      <div class="help-body">
+        <h3>Cara Bermain:</h3>
+        <ol>
+          <li><strong>Tukar Permata:</strong> Klik permata lalu klik permata di sebelahnya (atau geser/drag) untuk mencocokkan 3 atau lebih permata sejenis sejajar.</li>
+          <li><strong>Ubah Menjadi Emas:</strong> Setiap ubin tempat pencocokan terjadi akan bertransformasi dari batu kelabu menjadi <strong>lempengan EMAS murni</strong> berukir hieroglif Maya!</li>
+          <li><strong>Ubin Berlapis Ganda:</strong> Di level tinggi, ubin tengah membutuhkan 2 kali pencocokan (Batu ➔ Perak ➔ Emas Murni).</li>
+          <li><strong>Menangkan Kamar:</strong> Ubah SEMUA ubin di papan menjadi emas sebelum langkah atau waktu habis!</li>
+          <li><strong>100% Offline:</strong> Game ini sepenuhnya berjalan di komputermu tanpa internet atau server, menggunakan Web Audio synthesizer dan Canvas murni.</li>
+        </ol>
+        <button class="action-btn" id="btnGotIt">Saya Mengerti, Ayo Main!</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Download Standalone Package Modal -->
+  <div class="modal-overlay" id="downloadModal">
+    <div class="modal-content modal-download">
+      <div class="modal-header">
+        <h2>💾 SIMPAN & MAINKAN OFFLINE</h2>
+        <button class="modal-close" id="closeDownload">✕</button>
+      </div>
+      <div class="download-body">
+        <p>Game ini dirancang dalam <strong>3 file mandiri bernama "Jewel Quest: Aztec Temple Adventure"</strong>:</p>
+        <ul class="file-list">
+          <li><strong>Jewel_Quest_Aztec_Temple_Adventure.html</strong> — Struktur halaman & kanvas kuil</li>
+          <li><strong>Jewel_Quest_Aztec_Temple_Adventure.css</strong> — Desain grafis batu Aztec, emas, & animasi</li>
+          <li><strong>Jewel_Quest_Aztec_Temple_Adventure.js</strong> — Logika permata, suara Web Audio synthesizer, & level 16x16 / 18x18</li>
+        </ul>
+        <p class="download-note">Kamu dapat menyimpan ketiga file ini ke dalam satu folder di komputermu, lalu cukup klik dua kali pada <code>Jewel_Quest_Aztec_Temple_Adventure.html</code> untuk bermain kapan pun tanpa koneksi internet!</p>
+        <div class="download-buttons">
+          <a class="action-btn" id="dlHtml" download="Jewel_Quest_Aztec_Temple_Adventure.html" href="Jewel_Quest_Aztec_Temple_Adventure.html">📥 Unduh Jewel_Quest_Aztec_Temple_Adventure.html</a>
+          <a class="action-btn" id="dlCss" download="Jewel_Quest_Aztec_Temple_Adventure.css" href="Jewel_Quest_Aztec_Temple_Adventure.css">📥 Unduh Jewel_Quest_Aztec_Temple_Adventure.css</a>
+          <a class="action-btn" id="dlJs" download="Jewel_Quest_Aztec_Temple_Adventure.js" href="Jewel_Quest_Aztec_Temple_Adventure.js">📥 Unduh Jewel_Quest_Aztec_Temple_Adventure.js</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Core Game Script -->
+  <script src="Jewel_Quest_Aztec_Temple_Adventure.js"></script>
+</body>
+</html>

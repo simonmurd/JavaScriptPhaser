@@ -3,14 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Super Bomberman 90s Retro Edition - Modul 06</title>
-  <meta name="description" content="Modul 06: Game Bomberman klasik era 90-an dalam 3 file utama (modul-06.html / index.html, modul-06.css, modul-06.js).">
+  <title>Super Bomberman 90s Retro Edition</title>
+  <meta name="description" content="Game Bomberman klasik era 90-an dalam 3 file utama (index.html, style.css, game.js) dengan grafis retro piksel, audio 8-bit chiptune, kontrol lancar, dan split-screen editor.">
+  <meta property="og:title" content="Super Bomberman 90s Retro Edition">
+  <meta property="og:description" content="Game Bomberman klasik era 90-an siap download (3 file utama).">
 
-  <!-- Tailwind CSS -->
+  <!-- Tailwind CSS & JSZip -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
-  <!-- External Stylesheet (File 2 dari 3: modul-06.css) -->
-  <link rel="stylesheet" href="./modul-06.css">
+  <!-- External Stylesheet (modul-06.css) -->
+  <link rel="stylesheet" href="./modul-06.css" onerror="this.onerror=null; this.href='./modul-06/modul-06.css';">
 </head>
 <body class="flex flex-col h-screen overflow-hidden m-0 p-0">
 
@@ -27,18 +30,22 @@
     </div>
 
     <div class="flex items-center space-x-2 sm:space-x-3">
+      <!-- Gamepad indicator -->
       <span id="gamepad-badge" class="hidden lg:flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-950/80 px-2.5 py-1 rounded border border-emerald-800 font-mono">
         🎮 <span id="gamepad-name">Gamepad Terhubung</span>
       </span>
 
+      <!-- CRT toggle -->
       <button id="crt-btn" class="flex items-center space-x-1.5 px-2.5 py-1 rounded text-xs font-mono border transition-all bg-cyan-950 text-cyan-300 border-cyan-700" title="Toggle Efek CRT 90s">
         📺 <span class="hidden sm:inline">CRT ON</span>
       </button>
 
+      <!-- Audio Mute toggle -->
       <button id="audio-btn" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-emerald-400 rounded border border-slate-700 transition-colors" title="Toggle Audio 8-bit">
         🔊
       </button>
 
+      <!-- View Switcher (Bagi Dua / Full Game) -->
       <div class="flex bg-slate-800 p-0.5 rounded border border-slate-700 text-xs font-mono">
         <button id="btn-view-split" class="px-2.5 py-1 rounded bg-amber-600 text-white font-semibold transition-all">
           Bagi Dua
@@ -48,11 +55,21 @@
         </button>
       </div>
 
-      <button id="run-btn" class="bg-amber-600 hover:bg-amber-500 active:scale-95 text-white font-semibold px-3 sm:px-4 py-1.5 rounded-md transition-all flex items-center space-x-1.5 shadow-lg shadow-amber-600/30 text-xs sm:text-sm cursor-pointer">
+      <!-- Action Button "Jalankan & Mainkan!" -->
+      <button id="run-btn" class="bg-amber-600 hover:bg-amber-500 active:scale-95 text-white font-semibold px-2.5 sm:px-4 py-1.5 rounded-md transition-all flex items-center space-x-1.5 shadow-lg shadow-amber-600/30 text-xs sm:text-sm cursor-pointer">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
         </svg>
-        <span>Jalankan & Mainkan!</span>
+        <span class="hidden md:inline">Jalankan &amp; Mainkan!</span>
+        <span class="md:hidden">Main!</span>
+      </button>
+
+      <!-- Download Button "Unduh ZIP" -->
+      <button id="download-pkg-btn" class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-semibold px-2.5 sm:px-3 py-1.5 rounded-md transition-all flex items-center space-x-1.5 shadow-lg shadow-emerald-600/30 text-xs sm:text-sm cursor-pointer" title="Download Paket Modul 06 (.ZIP)">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+        <span class="hidden sm:inline">Unduh</span><span>ZIP</span>
       </button>
     </div>
   </header>
@@ -62,6 +79,7 @@
     
     <!-- Code Editor Area (Left Pane - 50%) -->
     <section id="editor-section" class="w-1/2 border-r border-slate-800 flex flex-col bg-[#0b0f19] font-mono text-xs">
+      <!-- Editor Subheader -->
       <div class="h-9 bg-slate-900/90 px-4 flex items-center justify-between border-b border-slate-800 shrink-0 text-slate-400 select-none">
         <div class="flex items-center space-x-2">
           <span class="text-amber-500 font-bold">&lt;/&gt;</span>
@@ -79,6 +97,7 @@
         </div>
       </div>
 
+      <!-- Presets bar -->
       <div class="h-8 bg-slate-950/80 px-4 flex items-center justify-between border-b border-slate-800/80 shrink-0 text-[11px] select-none">
         <div class="flex items-center space-x-2 text-slate-400">
           <span class="text-amber-400">★</span>
@@ -88,12 +107,14 @@
             <option value="stage2">Stage 2: Cyber Factory (Fast)</option>
             <option value="stage3">Stage 3: Magma Core (Hard)</option>
             <option value="stage4">Stage 4: Magnet Boss Arena (12 HP)</option>
+            <option value="battle">Stage 5: Battle Arena (1v1 vs Kurobom AI)</option>
             <option value="turbo">Chaos Mania (Turbo Speed & 5 Bombs)</option>
           </select>
         </div>
         <span class="text-[10px] text-emerald-400">● Live Sync Ready</span>
       </div>
 
+      <!-- Editor Body with synchronized line numbers -->
       <div class="flex-1 relative flex overflow-hidden bg-[#0d1117]">
         <div id="line-numbers" class="w-12 py-3 bg-[#090d16] border-r border-slate-800 text-slate-600 select-none text-right pr-3 overflow-hidden font-code leading-5 text-[11px]">
           1
@@ -101,6 +122,7 @@
         <textarea id="code-textarea" spellcheck="false" class="flex-1 h-full p-3 bg-transparent text-slate-200 font-code text-[11px] leading-5 resize-none focus:outline-none focus:ring-0 whitespace-pre overflow-auto"></textarea>
       </div>
 
+      <!-- Editor Footer -->
       <div class="h-6 bg-slate-900 border-t border-slate-800 px-4 flex items-center justify-between text-[10px] text-slate-500 select-none">
         <span id="line-count-label">JavaScript Config • 52 Baris</span>
         <span>Ubah parameter lalu klik [Jalankan & Mainkan!]</span>
@@ -109,6 +131,7 @@
 
     <!-- Game Canvas Output Area (Right Pane - 50%) -->
     <section id="game-section" class="w-1/2 flex flex-col bg-slate-950 relative h-full overflow-hidden">
+      <!-- Preview Subheader -->
       <div class="bg-slate-900/90 px-4 py-2 text-xs font-mono text-slate-400 border-b border-slate-800 flex items-center justify-between shrink-0 select-none">
         <span class="font-semibold text-slate-300">Pratinjau Live (800x600 Responsif)</span>
         <div class="flex items-center space-x-3 text-[11px]">
@@ -119,6 +142,7 @@
         </div>
       </div>
 
+      <!-- Live Canvas & HUD Container -->
       <div class="flex-1 flex flex-col items-center justify-center p-2 sm:p-3 relative overflow-hidden bg-black">
         
         <!-- Arcade HUD -->
@@ -149,9 +173,30 @@
               <div id="hud-speed" class="text-emerald-400 font-bold">160</div>
             </div>
           </div>
+
+          <!-- Special Items & Abilities Row -->
+          <div class="mt-2 pt-1 border-t border-slate-800 flex items-center justify-between text-[9px]">
+            <div class="flex items-center gap-1.5 text-slate-400">
+              <span class="text-slate-500">ITEMS:</span>
+              <span id="hud-item-kick" class="opacity-30 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800 text-yellow-400" title="Kick Boots">👟 KICK</span>
+              <span id="hud-item-shield" class="opacity-30 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800 text-cyan-400" title="Shield Bubble">🛡️ SHIELD</span>
+              <span id="hud-item-remote" class="opacity-30 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800 text-blue-400" title="Remote Detonator">📡 REMOTE</span>
+              <span id="hud-item-fullfire" class="opacity-30 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800 text-amber-400" title="Full Fire Blast">🔥 MAX-FIRE</span>
+              <span id="hud-item-curse" class="hidden bg-purple-950 px-1.5 py-0.5 rounded border border-purple-800 text-purple-300 animate-pulse" title="Mystery Curse Active">💀 CURSED!</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button id="hud-detonate-btn" class="hidden bg-sky-600 hover:bg-sky-500 text-white px-2 py-0.5 rounded font-mono font-bold text-[9px] cursor-pointer shadow">
+                💣 DETONASI [X]
+              </button>
+              <button id="hud-cheat-power" class="bg-amber-950/70 hover:bg-amber-900 text-amber-300 border border-amber-800/80 px-1.5 py-0.5 rounded text-[8px] cursor-pointer" title="Cheat: Isi Penuh Power-Up">
+                ⚡ MAX POWER
+              </button>
+            </div>
+          </div>
+
           <!-- Boss bar -->
           <div id="hud-boss-container" class="hidden mt-2 bg-slate-950 p-1.5 rounded border border-purple-900/60 flex items-center gap-2">
-            <span class="text-[9px] text-purple-400 font-bold whitespace-nowrap">MAGNET BOMBER:</span>
+            <span id="hud-boss-label" class="text-[9px] text-purple-400 font-bold whitespace-nowrap">MAGNET BOMBER:</span>
             <div class="flex-1 bg-slate-800 h-3 rounded overflow-hidden border border-slate-700">
               <div id="hud-boss-bar" class="bg-gradient-to-r from-red-500 to-purple-500 h-full transition-all duration-200" style="width: 100%;"></div>
             </div>
@@ -164,7 +209,7 @@
           <canvas id="game-canvas" width="800" height="600" class="max-w-full max-h-full object-contain rounded-md border border-slate-800 shadow-[0_0_25px_rgba(245,158,11,0.25)]"></canvas>
           <div id="crt-overlay" class="absolute inset-0 crt-overlay crt-vignette pointer-events-none rounded-md"></div>
 
-          <!-- Modals Container -->
+          <!-- Modals & Menu Overlays -->
           <div id="modal-container" class="absolute inset-0 pointer-events-none z-30 flex items-center justify-center"></div>
         </div>
 
@@ -173,7 +218,7 @@
 
   </main>
 
-  <!-- External Game Engine Script (File 3 dari 3: modul-06.js) -->
-  <script src="./modul-06.js"></script>
+  <!-- External Game Engine Script (modul-06.js) -->
+  <script src="./modul-06.js" onerror="this.onerror=null; this.src='./modul-06/modul-06.js';"></script>
 </body>
 </html>
