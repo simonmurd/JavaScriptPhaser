@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Asteroid Miner 2185 - Ultra-HD Cyberpunk IDE</title>
+  <meta name="description" content="Ultra-HD Cyberpunk Space Mining Simulation & Live Scripting IDE dengan 6 Formula Canvas 2D, Dual-Layer Neon Glow, Fisika Partikel Redaman, dan Vektor Poligon Matematis. Siap dimainkan online maupun offline.">
+  <meta property="og:title" content="Asteroid Miner 2185 - Ultra-HD Cyberpunk IDE">
+  <meta property="og:description" content="Ultra-HD Cyberpunk Space Mining Simulation & Live Scripting IDE.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!-- Google Fonts dengan Fallback Offline Otomatis -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+  <!-- Stylesheet Relatif untuk Support Offline Penuh -->
+  <link rel="stylesheet" href="./Asteroid Miner 2185 - Ultra-HD Cyberpunk IDE.css">
+</head>
+<body>
+
+  <!-- HEADER NAVBAR -->
+  <header id="appHeader">
+    <div class="header-left">
+      <div class="app-logo">
+        <span class="logo-icon">🚀</span>
+        <span class="logo-title font-orbitron">ASTEROID MINER 2185</span>
+        <span class="logo-tag">ULTRA-HD IDE</span>
+      </div>
+    </div>
+
+    <!-- Center Navigation & Tools -->
+    <div class="header-center">
+      <button id="btnOpenTechLab" class="btn-tech-lab font-orbitron" title="Buka Laboratorium 6 Formula & Sandbox Kalibrasi">
+        <span class="tech-icon">⚙️</span>
+        <span class="tech-text">6 FORMULA & LAB KALIBRASI</span>
+        <span class="tech-pill">6/6 AKTIF</span>
+      </button>
+
+      <!-- Tombol Download Offline Utama -->
+      <button id="btnOpenDownloadModal" class="btn-download-offline font-orbitron" title="Unduh game agar bisa dimainkan secara offline di komputer Anda">
+        <span class="dl-icon">📥</span>
+        <span>DOWNLOAD OFFLINE</span>
+      </button>
+    </div>
+
+    <!-- Header Right Controls -->
+    <div class="header-controls">
+      <div class="split-controls">
+        <span class="ctrl-label">Split:</span>
+        <button id="btnSplit50" class="btn-ctrl active" title="Bagi 50% Editor / 50% Game">50:50</button>
+        <button id="btnSplit3565" class="btn-ctrl" title="35% Editor / 65% Game">35:65</button>
+        <button id="btnSplit6535" class="btn-ctrl" title="65% Editor / 35% Game">65:35</button>
+        <button id="btnSplitFull" class="btn-ctrl" title="Layar Game Penuh">⛶ Full</button>
+      </div>
+
+      <button id="btnRunGlobal" class="btn-action-run font-orbitron">▶ TERAPKAN SCRIPT</button>
+      <button id="btnToggleSound" class="btn-icon" title="Bisukan / Nyalakan Audio Prosedural">🔊</button>
+      <button id="btnShowHelp" class="btn-icon" title="Panduan Kontrol & Misi">❓</button>
+    </div>
+  </header>
+
+  <!-- WORKSPACE SPLIT CONTAINER -->
+  <main id="workspace">
+
+    <!-- LEFT PANE: JAVASCRIPT CODE EDITOR IDE -->
+    <section id="codePane">
+      <div class="editor-toolbar">
+        <div class="toolbar-tab">
+          <span class="tab-badge">JS</span>
+          <span class="tab-filename font-mono">miner-config.js</span>
+        </div>
+        <div class="toolbar-actions">
+          <span id="syntaxStatus" class="syntax-badge ok">✓ Syntax OK</span>
+
+          <!-- Snippet Dropdown Menu -->
+          <div class="dropdown-wrapper">
+            <button id="btnSnippetMenu" class="btn-sm btn-subtle">⚡ Snippet ▾</button>
+            <div id="snippetDropdown" class="dropdown-menu hidden">
+              <div class="dropdown-header">SISIPKAN SNIPPET CEPAT:</div>
+              <button class="dropdown-item" data-snippet="afterburner">⚡ Hyper Afterburner (Speed 12)</button>
+              <button class="dropdown-item" data-snippet="magnet">🧲 Super Quantum Magnet (380px)</button>
+              <button class="dropdown-item" data-snippet="godmode">🛡️ Titan God Mode (Hull 999)</button>
+              <button class="dropdown-item" data-snippet="singularity">🌀 Infinite Singularity Missiles</button>
+              <button class="dropdown-item" data-snippet="overclock">🌈 Laser Gatling Overclock</button>
+            </div>
+          </div>
+
+          <button id="btnCopyCode" class="btn-sm btn-subtle" title="Salin Kode ke Clipboard">📋 Salin</button>
+          <button id="btnResetCode" class="btn-sm btn-subtle" title="Kembalikan ke script bawaan">↺ Reset</button>
+          <button id="btnRunCode" class="btn-sm btn-primary font-orbitron">▶ Terapkan</button>
+        </div>
+      </div>
+
+      <!-- Preset Selector Bar -->
+      <div class="preset-bar">
+        <span class="preset-label font-orbitron">PRESET KAPAL:</span>
+        <div class="preset-chips">
+          <button class="preset-chip active" data-preset="default">Standar V1</button>
+          <button class="preset-chip" data-preset="heavy_hauler">Titan Carrier</button>
+          <button class="preset-chip" data-preset="laser_master">Laser Master</button>
+          <button class="preset-chip" data-preset="speed_miner">Hyperion Interceptor</button>
+          <button class="preset-chip" data-preset="neon_overdrive">Cyber Overdrive</button>
+        </div>
+      </div>
+
+      <!-- Code Textarea with Line Numbers -->
+      <div class="editor-container">
+        <div id="lineNumbers" class="line-numbers font-mono"></div>
+        <div class="code-textarea-wrap">
+          <textarea id="codeTextarea" class="font-mono" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
+        </div>
+      </div>
+
+      <!-- Terminal Diagnostics Drawer -->
+      <div id="terminalDrawer">
+        <div class="terminal-header">
+          <div class="terminal-title font-mono">
+            <span>💻 CONSOLE DIAGNOSTIK ON-BOARD TELEMETRY</span>
+          </div>
+          <button id="btnClearTerminal" class="btn-subtle btn-xs">Bersihkan</button>
+        </div>
+        <div id="terminalLogs" class="font-mono"></div>
+      </div>
+    </section>
+
+    <!-- DRAGGABLE SPLIT DIVIDER -->
+    <div id="splitDivider" title="Geser untuk mengatur lebar panel editor & arena game">
+      <div class="grip-dots">
+        <span class="grip-dot"></span>
+        <span class="grip-dot"></span>
+        <span class="grip-dot"></span>
+      </div>
+    </div>
+
+    <!-- RIGHT PANE: CANVAS GAME ARENA -->
+    <section id="gamePane">
+      <!-- Game Sub-Header Toolbar -->
+      <div class="game-toolbar">
+        <div class="game-status-info">
+          <span class="pulse-dot"></span>
+          <span class="status-text font-orbitron">SEKTOR X-92 // CITADEL OLYMPUS-9</span>
+          <span id="sectorThreatLevel" class="status-badge-threat font-mono">THREAT: LVL 1</span>
+        </div>
+        <div class="game-toolbar-actions">
+          <button id="btnDockStation" class="btn-game-tool font-orbitron dock-action hidden">⚓ BERLABUH [E]</button>
+          <button id="btnOpenMarket" class="btn-game-tool font-orbitron market-action">🛒 PASAR OLYMPUS-9</button>
+          <button id="btnRestartGame" class="btn-game-tool">🔄 Reset</button>
+          <button id="btnRestoreCode" class="btn-game-tool font-orbitron restore-action hidden">◀ Tampilkan Editor</button>
+        </div>
+      </div>
+
+      <!-- Game Viewport Canvas & Overlays -->
+      <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- Boss Health Bar Overlay (Appears during Pirate Boss wave) -->
+        <div id="bossBarContainer" class="boss-bar-wrap hidden">
+          <div class="boss-info font-orbitron">
+            <span class="boss-name">🏴‍☠️ DREADNOUGHT PIRATE "IRON VULTURE"</span>
+            <span id="bossHpPercent" class="boss-hp-val">100%</span>
+          </div>
+          <div class="boss-meter-track">
+            <div id="bossHpFill" class="boss-meter-fill" style="width: 100%;"></div>
+          </div>
+        </div>
+
+        <!-- Emergency Red Flashing Border for Critical Hull -->
+        <div id="emergencyAlarm" class="emergency-alarm hidden">
+          <div class="emergency-text font-orbitron">⚠ PERINGATAN DARURAT: HULL INTEGRITY CRITICAL ⚠</div>
+        </div>
+
+        <!-- HUD OVERLAY -->
+        <div id="hud" class="hud-overlay hidden">
+          <!-- Top Row -->
+          <div class="hud-top-row">
+            <!-- Shield, Hull, Thruster Plasma Bars -->
+            <div class="hud-box stat-meters">
+              <div class="hud-row-metric text-cyan">
+                <span>DEFLECTOR SHIELD:</span>
+                <span id="shieldPercent" class="font-mono">100%</span>
+              </div>
+              <div class="meter-track">
+                <div id="shieldFill" class="meter-fill fill-shield" style="width: 100%;"></div>
+              </div>
+
+              <div class="hud-row-metric text-rose" style="margin-top: 4px;">
+                <span>HULL STRUCTURAL:</span>
+                <span id="healthPercent" class="font-mono">100%</span>
+              </div>
+              <div class="meter-track">
+                <div id="healthFill" class="meter-fill fill-health" style="width: 100%;"></div>
+              </div>
+
+              <div class="hud-row-metric text-gold" style="margin-top: 4px;">
+                <span>ION PLASMA FUEL:</span>
+                <span id="fuelPercent" class="font-mono">100%</span>
+              </div>
+              <div class="meter-track">
+                <div id="fuelFill" class="meter-fill fill-fuel" style="width: 100%;"></div>
+              </div>
+            </div>
+
+            <!-- Center Combo & Buffs Banner -->
+            <div class="hud-center-stack">
+              <div id="comboBanner" class="combo-banner hidden">
+                <span class="combo-fire">🔥</span>
+                <span id="comboMultiplierText" class="font-orbitron font-bold">COMBO x2</span>
+                <div class="combo-timer-track">
+                  <div id="comboTimerFill" class="combo-timer-fill"></div>
+                </div>
+              </div>
+
+              <div id="activeBuffsContainer" class="buffs-container"></div>
+            </div>
+
+            <!-- Credits & Cargo & Missions Box -->
+            <div class="hud-box-group">
+              <div class="hud-box text-right">
+                <div class="hud-sublabel">SALDO KREDIT:</div>
+                <div id="creditsDisplay" class="font-orbitron hud-val-credits">$K 250</div>
+                <div class="hud-sublabel" style="margin-top: 2px;">TOTAL KARGO:</div>
+                <div id="cargoDisplay" class="font-orbitron hud-val-cargo">0 / 120 TON</div>
+                <div class="hud-sublabel" style="margin-top: 2px;">TOTAL SKOR:</div>
+                <div id="scoreDisplay" class="font-mono hud-val-score">0 PTS</div>
+              </div>
+
+              <!-- Bounty Missions Widget -->
+              <div id="missionWidget" class="hud-box mission-box">
+                <div class="mission-header font-orbitron">🎯 TARGET MISI SEKTOR</div>
+                <div id="missionsList" class="mission-list"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Row -->
+          <div class="hud-bottom-row">
+            <!-- Weapon Mode, Heat Core & Quantum Singularity Missile Gauge -->
+            <div class="hud-box weapon-box">
+              <div class="weapon-label-row">
+                <span class="weapon-title">SENJATA PENAMBANG:</span>
+                <span class="weapon-key">[SPASI / 1-4]</span>
+              </div>
+              <div id="weaponNameDisplay" class="font-orbitron weapon-name">BEAM PULSE GATLING</div>
+
+              <div class="hud-row-metric">
+                <span>REACTOR HEAT CORE:</span>
+                <span id="overheatPercent" class="font-mono">0%</span>
+              </div>
+              <div class="meter-track">
+                <div id="overheatFill" class="meter-fill fill-heat" style="width: 0%;"></div>
+              </div>
+
+              <!-- Quantum Singularity Missile Secondary Gauge -->
+              <div class="hud-row-metric text-gold" style="margin-top: 5px;">
+                <span>🌀 MISIL VORTEX SINGULARITY:</span>
+                <span id="missileStatus" class="font-mono">SIAP [Q / R-CLICK]</span>
+              </div>
+              <div class="meter-track">
+                <div id="missileFill" class="meter-fill fill-missile" style="width: 100%;"></div>
+              </div>
+            </div>
+
+            <!-- Mineral Storage & Radar Scanner -->
+            <div class="hud-right-group">
+              <div class="hud-box text-center">
+                <div class="font-orbitron mineral-header">MINERAL KARGO TERSIMPAN</div>
+                <div class="mineral-grid font-mono">
+                  <div>
+                    <span class="ore-fe">Fe</span>
+                    <strong id="countIron">0</strong>
+                  </div>
+                  <div>
+                    <span class="ore-au">Au</span>
+                    <strong id="countGold">0</strong>
+                  </div>
+                  <div>
+                    <span class="ore-pt">Pt</span>
+                    <strong id="countPlatinum">0</strong>
+                  </div>
+                  <div>
+                    <span class="ore-u">U</span>
+                    <strong id="countUranium">0</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div class="hud-box radar-box">
+                <canvas id="miniMapCanvas" class="radar-canvas" width="68" height="68"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MOBILE TOUCH CONTROLS -->
+        <div id="mobileControls" class="mobile-controls-bar">
+          <div class="mobile-left">
+            <button id="btnTouchThrust" class="touch-btn thrust-btn" title="Akselerasi">⬆</button>
+            <span class="touch-label font-orbitron">THRUST</span>
+          </div>
+          <div class="mobile-center">
+            <button id="btnTouchMissile" class="touch-action-btn font-orbitron">🌀 VORTEX [Q]</button>
+            <button id="btnTouchMarket" class="touch-action-btn font-orbitron">🛒 PASAR</button>
+          </div>
+          <div class="mobile-right">
+            <button id="btnTouchSwitch" class="touch-btn-sm" title="Tukar Mode Senjata">⚡</button>
+            <button id="btnTouchFire" class="touch-btn fire-btn" title="Tembak Laser">🎯</button>
+          </div>
+        </div>
+
+        <!-- START SCREEN MODAL -->
+        <div id="startScreen" class="overlay-modal">
+          <div class="briefing-card">
+            <div class="briefing-icon">🚀</div>
+            <h1 class="briefing-title font-orbitron">ASTEROID MINER 2185</h1>
+            <p class="briefing-subtitle font-mono">ULTRA-HD CYBERPUNK MINING SIMULATION & SCRIPTING IDE</p>
+            <div class="briefing-content font-tech">
+              <div>• <strong>Kendali Kapal:</strong> Tombol W / Panah Atas (Akselerasi), Kursor Mouse untuk membidik</div>
+              <div>• <strong>Tembak Laser:</strong> Tahan Klik Kiri atau Spasi</div>
+              <div>• <strong>Misil Vortex Singularity:</strong> Tekan [Q] atau Klik Kanan (Menghisap musuh & asteroid sebelum meledak!)</div>
+              <div>• <strong>Ganti Senjata:</strong> Angka 1, 2, 3, 4 atau tombol Spasi (Gatling / Plasma / Extractor / Quad)</div>
+              <div>• <strong>Stasiun Olympus-9:</strong> Dekati cincin docking stasiun & tekan [E] untuk menjual mineral & upgrade kapal</div>
+              <div>• <strong>Perompak Luar Angkasa:</strong> Waspada Raider & Boss Dreadnought yang siap membajak kargo Anda</div>
+              <div>• <strong>Live Scripting IDE:</strong> Ubah properti kapal di panel kiri & klik "Terapkan Script" secara langsung</div>
+              <div>• <strong>Bisa Dimainkan Offline:</strong> Klik tombol <em>"DOWNLOAD OFFLINE"</em> untuk mengunduh ke PC / HP Anda!</div>
+            </div>
+            <button id="btnStartGame" class="neon-btn font-orbitron">LUNCURKAN KAPAL KE SEKTOR X-92</button>
+          </div>
+        </div>
+
+        <!-- GAME OVER SCREEN MODAL -->
+        <div id="gameOverScreen" class="overlay-modal hidden">
+          <div class="gameover-card">
+            <div class="gameover-icon">💥</div>
+            <h2 class="gameover-title font-orbitron">KAPAL HANCUR TOTAL!</h2>
+            <p class="gameover-desc">Hull integritas kapal gagal menahan benturan asteroid raksasa atau meriam perompak.</p>
+            <div class="gameover-stats">
+              <div class="stat-label">TOTAL KREDIT TERSELAMATKAN:</div>
+              <div id="finalCreditsDisplay" class="stat-value text-cyan font-orbitron">$K 0</div>
+              <div class="stat-label" style="margin-top: 6px;">TOTAL SKOR AKHIR:</div>
+              <div id="finalScoreDisplay" class="stat-value text-white font-mono">0 PTS</div>
+            </div>
+            <button id="btnRestartAfterGameOver" class="neon-btn-danger font-orbitron">LUNCURKAN KAPAL PENGGANTI BARU</button>
+          </div>
+        </div>
+
+        <!-- MARKET & REFINERY MODAL -->
+        <div id="marketModal" class="overlay-modal hidden">
+          <div class="market-card">
+            <div class="modal-header">
+              <div class="modal-title-group">
+                <span class="modal-icon">🛒</span>
+                <div>
+                  <h3 class="modal-title font-orbitron">STASIUN REFINERY & BENGKEL ANGKASA</h3>
+                  <p class="modal-subtitle">Citadel Orbit Olympus-9 // Perdagangan Logam Mulia & Rekayasa Tempur</p>
+                </div>
+              </div>
+              <button id="btnCloseMarket" class="btn-close-modal">✕</button>
+            </div>
+
+            <div class="market-body">
+              <div class="market-summary-bar">
+                <div>
+                  <div class="subtext">SALDO REKENING KREDIT:</div>
+                  <div id="marketCredits" class="font-orbitron val-lg text-cyan">$K 0</div>
+                </div>
+                <div class="text-right">
+                  <div class="subtext">KAPASITAS MUATAN KARGO:</div>
+                  <div id="marketCargoSpace" class="font-orbitron val-lg text-emerald">0 / 120 TON</div>
+                </div>
+              </div>
+
+              <div class="market-section-title font-orbitron">1. PENJUALAN MINERAL TAMBANG</div>
+              <button id="btnSellAllOre" class="btn-sell-all font-orbitron">⚡ JUAL SEMUA HASIL TAMBANG (INSTANT REFINERY)</button>
+
+              <div class="mineral-trade-grid font-mono">
+                <div class="trade-item">
+                  <div class="trade-info">
+                    <span>Besi (Fe)</span>
+                    <strong id="marketFeQty">0 T</strong>
+                  </div>
+                  <div class="trade-price">$K 20 / Ton</div>
+                  <button id="btnSellIron" class="btn-trade">Jual Besi</button>
+                </div>
+
+                <div class="trade-item trade-gold">
+                  <div class="trade-info">
+                    <span>Emas (Au)</span>
+                    <strong id="marketAuQty">0 T</strong>
+                  </div>
+                  <div class="trade-price">$K 60 / Ton</div>
+                  <button id="btnSellGold" class="btn-trade btn-trade-gold">Jual Emas</button>
+                </div>
+
+                <div class="trade-item trade-platinum">
+                  <div class="trade-info">
+                    <span>Platina (Pt)</span>
+                    <strong id="marketPtQty">0 T</strong>
+                  </div>
+                  <div class="trade-price">$K 160 / Ton</div>
+                  <button id="btnSellPlatinum" class="btn-trade btn-trade-platinum">Jual Platina</button>
+                </div>
+
+                <div class="trade-item trade-uranium">
+                  <div class="trade-info">
+                    <span>Uranium (U)</span>
+                    <strong id="marketUQty">0 T</strong>
+                  </div>
+                  <div class="trade-price">$K 400 / Ton</div>
+                  <button id="btnSellUranium" class="btn-trade btn-trade-uranium">Jual Uranium</button>
+                </div>
+              </div>
+
+              <div class="market-section-title font-orbitron" style="margin-top: 14px;">2. PERBAIKAN & UPGRADE SISTEM KAPAL</div>
+              <div class="upgrades-grid">
+                <div class="upgrade-item">
+                  <div class="upgrade-left">
+                    <span class="upgrade-icon">🛡️</span>
+                    <div>
+                      <div class="upgrade-name">Perbaikan Hull & Shield</div>
+                      <div class="upgrade-desc">Pulihkan 100% kondisi kapal</div>
+                    </div>
+                  </div>
+                  <button id="btnBuyRepair" class="btn-upgrade font-mono">$K 60</button>
+                </div>
+
+                <div class="upgrade-item">
+                  <div class="upgrade-left">
+                    <span class="upgrade-icon">⛽</span>
+                    <div>
+                      <div class="upgrade-name">Isi Tangki Plasma</div>
+                      <div class="upgrade-desc">Bahan bakar propulsi ion</div>
+                    </div>
+                  </div>
+                  <button id="btnBuyFuel" class="btn-upgrade btn-upgrade-gold font-mono">$K 40</button>
+                </div>
+
+                <div class="upgrade-item">
+                  <div class="upgrade-left">
+                    <span class="upgrade-icon">📦</span>
+                    <div>
+                      <div class="upgrade-name">Ekspansi Ruang Kargo</div>
+                      <div class="upgrade-desc">+50 Ton kapasitas muatan</div>
+                    </div>
+                  </div>
+                  <button id="btnBuyCargo" class="btn-upgrade btn-upgrade-emerald font-mono">$K 220</button>
+                </div>
+
+                <div class="upgrade-item">
+                  <div class="upgrade-left">
+                    <span class="upgrade-icon">🤖</span>
+                    <div>
+                      <div class="upgrade-name">Drone Pengumpul Otonom</div>
+                      <div class="upgrade-desc">Otomatis menghisap kristal ore</div>
+                    </div>
+                  </div>
+                  <button id="btnBuyDrone" class="btn-upgrade btn-upgrade-pink font-mono">$K 450</button>
+                </div>
+
+                <div class="upgrade-item">
+                  <div class="upgrade-left">
+                    <span class="upgrade-icon">❄️</span>
+                    <div>
+                      <div class="upgrade-name">Radiator Cryo Laser</div>
+                      <div class="upgrade-desc">+25% kecepatan pendingin laser</div>
+                    </div>
+                  </div>
+                  <button id="btnBuyCooler" class="btn-upgrade btn-upgrade-cyan font-mono">$K 300</button>
+                </div>
+
+                <div class="upgrade-item">
+                  <div class="upgrade-left">
+                    <span class="upgrade-icon">🧲</span>
+                    <div>
+                      <div class="upgrade-name">Amplifier Medan Traktor</div>
+                      <div class="upgrade-desc">+60px radius hisap magnet</div>
+                    </div>
+                  </div>
+                  <button id="btnBuyMagnet" class="btn-upgrade btn-upgrade-purple font-mono">$K 180</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <button id="btnCloseMarketBottom" class="neon-btn font-orbitron" style="margin: 0; width: auto; padding: 8px 22px;">Lanjutkan Penambangan</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TECH INSPECTOR & LAB MODAL -->
+        <div id="techModal" class="overlay-modal hidden">
+          <div class="tech-card">
+            <div class="modal-header">
+              <div class="modal-title-group">
+                <span class="modal-icon">⚙️</span>
+                <div>
+                  <h3 class="modal-title font-orbitron">LABORATORIUM GRAFIS CANVAS 2D ULTRA-HD</h3>
+                  <p class="modal-subtitle">6 Formula Matematika Murni & Kalibrator Visual Interaktif</p>
+                </div>
+              </div>
+              <div class="tab-toggle-group">
+                <button id="tabBtnTechniques" class="btn-tab-pill active font-orbitron">6 Teknik Utama</button>
+                <button id="tabBtnSandbox" class="btn-tab-pill font-orbitron">Live Sandbox & Slider</button>
+                <button id="btnCloseTechModal" class="btn-close-modal" style="margin-left: 8px;">✕</button>
+              </div>
+            </div>
+
+            <!-- TAB 1: 6 FORMULAS EXPLAINED -->
+            <div id="tabContentTechniques" class="tech-body">
+              <div class="tech-banner">
+                <span>💡 <strong>Coba langsung:</strong> Anda dapat mengaktifkan / menonaktifkan masing-masing teknik di bawah untuk membuktikan perbedaannya secara visual pada simulasi game!</span>
+                <button id="btnEnableAllTech" class="btn-enable-all font-orbitron">Aktifkan Semua (Ultra-HD)</button>
+              </div>
+
+              <div class="tech-grid" id="techCardsGrid"></div>
+            </div>
+
+            <!-- TAB 2: LIVE SANDBOX & SLIDERS -->
+            <div id="tabContentSandbox" class="tech-body hidden">
+              <div class="sandbox-header font-orbitron">KOMPARASI REAL-TIME: STANDAR 96 DPI VS ULTRA-HD CYBERPUNK</div>
+              <div class="sandbox-canvas-wrapper">
+                <canvas id="sandboxCanvas" width="760" height="220"></canvas>
+              </div>
+
+              <div class="sliders-grid font-tech">
+                <div class="slider-box">
+                  <div class="slider-header">
+                    <span>Radius Pendaran Neon (Glow Blur):</span>
+                    <strong id="valGlowBlur" class="text-cyan font-mono">16 px</strong>
+                  </div>
+                  <input type="range" id="sliderGlowBlur" min="0" max="30" value="16">
+                  <p class="slider-tip">Mengatur ketebalan pendaran cahaya foton (ctx.shadowBlur) pada laser dan perisai.</p>
+                </div>
+
+                <div class="slider-box">
+                  <div class="slider-header">
+                    <span>Ketebalan Inti Putih Panas:</span>
+                    <strong id="valCoreBrightness" class="text-pink font-mono">1.0x</strong>
+                  </div>
+                  <input type="range" id="sliderCoreBrightness" min="0.5" max="2.5" step="0.1" value="1.0">
+                  <p class="slider-tip">Mengatur garis putih pusat (Layer 2) yang memicu persepsi panas laser.</p>
+                </div>
+
+                <div class="slider-box">
+                  <div class="slider-header">
+                    <span>Koefisien Redaman Partikel (vx *= factor):</span>
+                    <strong id="valParticleDamping" class="text-emerald font-mono">0.94</strong>
+                  </div>
+                  <input type="range" id="sliderParticleDamping" min="0.85" max="0.99" step="0.01" value="0.94">
+                  <p class="slider-tip">Nilai 0.94 memberikan rasa hambatan inersia vakum terbaik untuk semburan knalpot.</p>
+                </div>
+
+                <div class="slider-box">
+                  <div class="slider-header">
+                    <span>Kecepatan Denyut Math.sin(time):</span>
+                    <strong id="valSineSpeed" class="text-gold font-mono">1.0x</strong>
+                  </div>
+                  <input type="range" id="sliderSineSpeed" min="0.5" max="3.0" step="0.1" value="1.0">
+                  <p class="slider-tip">Frekuensi osilasi melayang kristal permata dan denyutan pelindung energi.</p>
+                </div>
+              </div>
+
+              <div class="checkboxes-row">
+                <label class="toggle-checkbox-label">
+                  <input type="checkbox" id="checkScreenShake" checked>
+                  <div>
+                    <div class="font-bold">Screen Shake Kinetik</div>
+                    <div class="subtext">Guncangan layar saat asteroid pecah atau tertabrak</div>
+                  </div>
+                </label>
+
+                <label class="toggle-checkbox-label">
+                  <input type="checkbox" id="checkCrtScanlines">
+                  <div>
+                    <div class="font-bold">Retro CRT Scanlines Overlay</div>
+                    <div class="subtext">Garis pendaran layar tabung arcade monitor 2185</div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <span class="subtext">Teknik ini murni menggunakan <strong>CanvasRenderingContext2D bawaan</strong> tanpa Three.js atau Pixi.js.</span>
+              <button id="btnCloseTechModalBottom" class="neon-btn font-orbitron" style="margin: 0; width: auto; padding: 8px 18px;">Tutup & Terapkan</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- DOWNLOAD OFFLINE MODAL -->
+        <div id="downloadModal" class="overlay-modal hidden">
+          <div class="briefing-card download-modal-card">
+            <div class="modal-header" style="background: transparent; border-bottom: 1px solid var(--border-cyan); margin-bottom: 14px; padding: 0 0 10px 0;">
+              <div class="modal-title-group">
+                <span class="modal-icon">📥</span>
+                <div>
+                  <h3 class="modal-title font-orbitron">DOWNLOAD PAKET GAME OFFLINE</h3>
+                  <p class="modal-subtitle">Asteroid Miner 2185 - Ultra-HD Cyberpunk IDE</p>
+                </div>
+              </div>
+              <button id="btnCloseDownloadModal" class="btn-close-modal">✕</button>
+            </div>
+
+            <p class="font-tech text-muted" style="font-size: 12px; margin-bottom: 14px; text-align: left; line-height: 1.5;">
+              Pilih format unduhan di bawah. Seluruh grafis Ultra-HD, audio synthesizer, dan live scripting IDE berjalan <strong>100% mandiri tanpa koneksi internet</strong> dan tanpa perlu install aplikasi tambahan:
+            </p>
+
+            <div class="download-options-grid">
+              <!-- OPTION 1: ZIP (3 FILES: index.html, style.css, script.js) -->
+              <div class="download-card">
+                <div class="dl-badge font-orbitron">REKOMENDASI</div>
+                <div class="dl-card-title font-orbitron">📦 PAKET ZIP 3 FILE LENGKAP</div>
+                <div class="dl-card-desc">Berisi 3 file terpisah: <code>Asteroid Miner 2185 - Ultra-HD Cyberpunk IDE.html</code>, <code>.css</code>, dan <code>.js</code> (beserta <code>index.html</code>). Siap diekstrak dan diedit langsung di VS Code.</div>
+                <button id="btnDownloadZip" class="neon-btn font-orbitron" style="margin-top: 10px;">UNDUH ZIP (3 FILE)</button>
+              </div>
+
+              <!-- OPTION 2: STANDALONE SINGLE-FILE HTML -->
+              <div class="download-card">
+                <div class="dl-badge dl-badge-gold font-orbitron">DOUBLE-CLICK PLAY</div>
+                <div class="dl-card-title font-orbitron">⚡ STANDALONE SINGLE-FILE HTML</div>
+                <div class="dl-card-desc">CSS dan JavaScript langsung digabung ke dalam 1 file HTML mandiri: <code>Asteroid Miner 2185 - Ultra-HD Cyberpunk IDE (Standalone).html</code>. Cukup klik ganda langsung jalan tanpa server!</div>
+                <button id="btnDownloadSingleHtml" class="neon-btn neon-btn-gold font-orbitron" style="margin-top: 10px;">UNDUH 1 FILE STANDALONE</button>
+              </div>
+
+              <!-- OPTION 3: INDIVIDUAL FILES -->
+              <div class="download-card">
+                <div class="dl-card-title font-orbitron">📄 UNDUH PER SATUAN FILE</div>
+                <div class="dl-card-desc">Unduh berkas individual yang diinginkan secara langsung:</div>
+                <div class="individual-dl-buttons" style="flex-wrap: wrap;">
+                  <button id="btnDlHtmlOnly" class="btn-sm btn-subtle" title="Unduh file HTML">📄 .html</button>
+                  <button id="btnDlCssOnly" class="btn-sm btn-subtle" title="Unduh file CSS">🎨 .css</button>
+                  <button id="btnDlJsOnly" class="btn-sm btn-subtle" title="Unduh file JS">⚡ .js</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="download-guide-box font-tech">
+              <strong>💡 Petunjuk Cara Memainkan Offline:</strong>
+              <div>1. Setelah diunduh, ekstrak file ZIP (jika memilih opsi ZIP).</div>
+              <div>2. Klik ganda file <code>Asteroid Miner 2185 - Ultra-HD Cyberpunk IDE.html</code> di laptop/komputer Anda.</div>
+              <div>3. Permainan & editor JavaScript langsung aktif 100% tanpa internet!</div>
+              <div>3. Permainan & editor JavaScript langsung aktif 100% tanpa internet!</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- HELP & INSTRUCTIONS MODAL -->
+        <div id="helpModal" class="overlay-modal hidden">
+          <div class="briefing-card" style="max-width: 480px; text-align: left;">
+            <div class="modal-header" style="background: transparent; border-bottom: 1px solid var(--border-cyan); margin-bottom: 14px; padding: 0 0 10px 0;">
+              <h3 class="modal-title font-orbitron text-cyan">PANDUAN MINING & LIVE SCRIPTING IDE</h3>
+              <button id="btnCloseHelp" class="btn-close-modal">✕</button>
+            </div>
+            <div class="font-tech" style="font-size: 12px; line-height: 1.6; color: #cbd5e1; display: flex; flex-direction: column; gap: 8px;">
+              <p>• <strong>Live JavaScript Scripting:</strong> Anda dapat mengedit variabel <code>player</code>, <code>cargo</code>, dan <code>laserModes</code> secara real-time di panel kiri. Tekan <em>"Terapkan Script"</em> untuk langsung merasakan perubahannya di mesin kapal!</p>
+              <p>• <strong>Misil Vortex Singularity [Q / R-Click]:</strong> Menembakkan hulu ledak kuantum yang menciptakan lubang gravitasi pemutar objek sekitar sebelum memicu ledakan fusi bintang raksasa.</p>
+              <p>• <strong>Stasiun Olympus-9 [E]:</strong> Dekati perimeter stasiun dan tekan [E] untuk menjual ore mineral dan membeli 6 jenis upgrade kapal tingkat lanjut.</p>
+              <p>• <strong>Boss Wave:</strong> Ketika skor Anda naik, Dreadnought Pirate "Iron Vulture" akan datang menyerang dengan meriam broadside.</p>
+              <p>• <strong>Bisa Dimainkan Offline:</strong> Klik tombol <em>"DOWNLOAD OFFLINE"</em> di header kapan pun Anda ingin menyimpan game ini di flashdisk atau harddisk.</p>
+            </div>
+            <button id="btnCloseHelpBottom" class="neon-btn font-orbitron" style="margin-top: 16px;">MENGERTI & LANJUTKAN</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Main JavaScript File dengan Path Relatif untuk Kompatibilitas Offline Penuh -->
+  <script src="./Asteroid Miner 2185 - Ultra-HD Cyberpunk IDE.js"></script>
+</body>
+</html>
